@@ -1,0 +1,12 @@
+#summary One-sentence summary of this page.
+#labels Featured,Phase-Implementation
+
+= Introduction =
+
+Open Meta uses setxattr(), getxattr() in a consistent manner to set and retrieve tags, ratings, and other metadata.
+
+
+= Details =
+
+Please feel free to download and evaluate the source:
+  * Initially, all changes will go through me (tom), but if it gets busy I would not mind any help!
