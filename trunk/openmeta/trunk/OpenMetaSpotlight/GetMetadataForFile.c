@@ -57,23 +57,65 @@ Boolean GetMetadataForFile(void* thisInterface,
     /* Return TRUE if successful, FALSE if there was no data provided */
     
 	// the idea is that we want have the importer run on our file type - "com.ironic.openmetaschema"
-	// WITH only one  ".openmetaschema" file on the computer. What this does is make the Spotlight metadata engine look at the 
+	// With only one   ".openmetaschema" file on the computer for each app that uses OpenMeta
+	// Each app that uses OpenMeta will need to tell Spotlight what keys it uses. This seems espcially important on 10.6 
+	// On 10.6 I have found that Spotlight only activates keys that are on the system, (at least the developer prerelease)
+	// What this does is make the Spotlight metadata engine look at the 
 	// open meta schema file, and generate entries in the user interface and file system where appropriate.
 	
-	// The end result is that we allow users to search for "Tags:foobar" in the spotlight top right (leopard - snow leopard) 
+	// The end result is that we allow users to search for "tag:foobar" in the spotlight top right (leopard - snow leopard) 
 	// spotlight search area, and only search for files with a kOMUserTags of foobar.
 	
-	// The idea is for Tagger or some other OpenMeta application to have this spotlight plugin installed, then create just one
-	// file in a relatively out of the way place called for example "schemaDefs.openmetaschema" Then this spotlight plugin will run, installing all of the 
-	// OpenMeta schema info into the spotlight system.
-	CFMutableArrayRef tags = CFArrayCreateMutable(nil, 20, &kCFTypeArrayCallBacks);
-	CFArrayAppendValue(tags, CFSTR("openmeta567778"));
-	CFArrayAppendValue(tags, CFSTR("openmeta22"));
+	// The file should be a dictionary: Each key in the file will be a kOM*, and will have a value that is a representative 
+	// value (eg array of strings, or cfnumber, etc)
+	CFDictionaryRef fileDict = NULL;
 	
-	CFDictionarySetValue(attributes, CFSTR("kOMUserTags"), tags);
-    return TRUE;
+	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, pathToFile,kCFURLPOSIXPathStyle , false);
+	if (fileURL)
+	{
+		CFReadStreamRef stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, fileURL);
+		if (stream)
+		{
+			CFPropertyListFormat propertyListFormat = 0;
+			CFReadStreamOpen(stream);
+			fileDict = CFPropertyListCreateFromStream(NULL, stream, 0,  kCFPropertyListImmutable, &propertyListFormat, nil);
+			CFReadStreamClose(stream);
+			CFRelease(stream);
+		}
+		CFRelease(fileURL);
+	}
 	
+	if (fileDict == NULL)
+		return FALSE;
 	
-	// I am not sure if I actually have to return a document with entries, I try it without. 
-    return FALSE;
+	if (CFGetTypeID(fileDict) != CFDictionaryGetTypeID())
+		return FALSE;
+	
+	// ok - go through the keys:
+	long numItems = CFDictionaryGetCount(fileDict);
+	CFStringRef* keys = malloc(sizeof(CFStringRef)*numItems);
+	CFTypeRef* values = malloc(sizeof(CFTypeRef)*numItems);
+	
+	if (numItems == 0 || keys == NULL || values == NULL)
+	{
+		CFRelease(fileDict);
+		return FALSE;
+	}
+	
+	CFShow(fileDict);
+	
+	CFDictionaryGetKeysAndValues(fileDict, (const void**) keys, (const void**) values);
+	long count;
+	for (count = 0; count < numItems; count++)
+	{
+		CFStringRef aKey = keys[count];
+		CFTypeRef aValue = values[count];
+		CFDictionarySetValue(attributes, aKey, aValue); // set the values
+	}
+	
+	free(keys);
+	free(values);
+	CFRelease(fileDict);
+	
+	return TRUE;
 }

@@ -60,6 +60,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import "OpenMeta.h"
+#import "OpenMetaBackup.h"
 
 BOOL gShowErrors = YES;
 
@@ -77,8 +78,8 @@ static NSArray* GetArgs(int argc, const char *argv[])
 
 static void PrintLine(NSString* line)
 {
-	fprintf(stderr, "%s", [line UTF8String]);
-	fprintf(stderr, "\n");
+	fprintf(stdout, "%s", [line UTF8String]);
+	fprintf(stdout, "\n");
 }
 
 
@@ -294,7 +295,7 @@ int main (int argc, const char * argv[])
 		"example (add tags with spaces): omtool -a \"three word tag\" \"foo bar\" -p PATH[s]\n"
 		"example (set tags):  omtool -s foo bar -p PATH[s]\n"
 		"example (clear all tags):  omtool -s -p PATH[s]\n"
-		"example (set rating 0 - 5 stars):  omtool -r3.5 -p PATH[s]\n"
+		"example (set rating 0 - 5 stars):  omtool -r 3.5 -p PATH[s]\n"
 		"example (print rating):  omtool -r -p PATH[s]\n"
 		"example (clear rating):  omtool -r 0.0 -p PATH[s]\n"
 		"example (lousy rating):  omtool -r 0.1 -p PATH[s]\n";
@@ -368,11 +369,14 @@ int main (int argc, const char * argv[])
 			SetTags(setTags, aPath);
 		
 		if (verbose)
-			PrintSingleLine(ratingsCommandFound, (addTags || setTags), aPath);
+			PrintSingleLine(ratingsCommandFound, (addTags || setTags || printTags), aPath);
 		
 		if (printInfo)
 			PrintInfo(aPath);
 	}
+	
+	// we need to sleep while the backup thread does its job...
+	[OpenMetaBackup appIsTerminating];
 	
     [pool drain];
     return 0;

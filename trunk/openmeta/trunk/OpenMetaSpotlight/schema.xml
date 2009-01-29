@@ -67,7 +67,9 @@
     -->
     <attributes>
         <attribute name="kOMUserTags" multivalued="true" type="CFString"/>
+        <attribute name="kOMUserTagTime" type="CFDate"/>
         <attribute name="kOMStarRating" type="CFNumber"/>
+        <attribute name="kOMDocumentDate" type="CFDate"/>
         <attribute name="kOMHidden" type="CFBoolean"/>
         <attribute name="kOMLatitude" type="CFNumber"/>
         <attribute name="kOMLongitude" type="CFNumber"/>
@@ -89,7 +91,8 @@
         <attribute name="kOMDirector" type="CFString"/>
         <attribute name="kOMProducer" type="CFString"/>
         <attribute name="kOMGenre" type="CFString"/>
-        <attribute name="kOMPerformers" type="CFString" multivalued="true"/>
+        <attribute name="kOMPerformers" multivalued="true" type="CFString"/>
+        <attribute name="kOMUserTagApplication" type="CFString"/>
    </attributes>
 
     <types>
@@ -99,7 +102,9 @@
                  It does not have to be exhaustive. -->
             <allattrs> 
 			kOMUserTags
+			kOMUserTagTime
 			kOMStarRating
+			kOMDocumentDate
 			kOMHidden
 			kOMLatitude
 			kOMLongitude
@@ -121,11 +126,14 @@
 			kOMProducer
 			kOMGenre
 			kOMPerformers
+			kOMUserTagApplication
             </allattrs>
             <!-- 'displayattrs' is a whitespace separated list of the attributes that should normally be displayed when previewing files of this UTI type. -->
             <displayattrs>
 			kOMUserTags
+			kOMUserTagTime
 			kOMStarRating
+			kOMDocumentDate
 			kOMHidden
 			kOMLatitude
 			kOMLongitude

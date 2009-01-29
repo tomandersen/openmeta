@@ -34,10 +34,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <sys/time.h>
 #include <sys/stat.h>
 #import "OpenMeta.h"
+#import "OpenMetaBackup.h"
 
 const long kMaxDataSize = 4096; // Limit maximum data that can be stored, 
 
 NSString* const kOMUserTags = @"kOMUserTags";
+NSString* const kOMUserTagTime = @"kOMUserTagTime";
 NSString* const kOMBookmarks = @"kOMBookmarks";
 NSString* const kOMApproved = @"kOMApproved";
 NSString* const kOMWorkflow = @"kOMWorkflow";
@@ -81,7 +83,12 @@ const double kOMMaxRating = 5.0;
 	// so it is impossible to use a single, for example comma delimited string to hold the values. 
 	// NSArrays can be written out as a plist, so that is what we will do. 
 	// Write the plist out as plain xml text, so as to allow someone not using cocoa to read out the values:
-	return [self setNSArrayMetaData:tags metaDataKey:kOMUserTags url:url];
+	OMError outError = [self setNSArrayMetaData:tags metaDataKey:kOMUserTags url:url];
+	
+	// set the time that the user tagged the document:
+	[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime url:url];
+	
+	return outError; 
 }
 
 //----------------------------------------------------------------------
@@ -124,6 +131,8 @@ const double kOMMaxRating = 5.0;
 	if ([newArray count] == [originalTags count])
 		return OM_MetaDataNotChanged;
 	
+	[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime url:url];
+	
 	return [self setNSArrayMetaData:newArray metaDataKey:kOMUserTags url:url];
 }
 
@@ -155,7 +164,11 @@ const double kOMMaxRating = 5.0;
 	NSArray* cleanedTags = [self removeDuplicateTags:newArray];
 	
 	if (![originalTags isEqualToArray:cleanedTags])
+	{
+		[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime url:url];
+		
 		return [self setNSArrayMetaData:cleanedTags metaDataKey:kOMUserTags url:url];
+	}
 		
 	return OM_MetaDataNotChanged;
 }
@@ -175,6 +188,9 @@ const double kOMMaxRating = 5.0;
 //----------------------------------------------------------------------
 +(NSArray*)getUserTags:(NSURL*)url errorCode:(OMError*)errorCode;
 {
+	// I put restore meta here - as restoreMetadata calls us! 
+	// I put the restore on the usertags and ratings. Users will have to manually call restore for other keys 
+	[OpenMetaBackup restoreMetadata:[url path]];
 	return [self getNSArrayMetaData:kOMUserTags url:url errorCode:errorCode];
 }
 
@@ -206,6 +222,8 @@ const double kOMMaxRating = 5.0;
 
 +(double)getRating:(NSURL*)url errorCode:(OMError*)errorCode;
 {
+	// ratings and tags are the only 'auto - restored' items 
+	[OpenMetaBackup restoreMetadata:[url path]];
 	NSNumber* theNumber = [self getXAttrMetaData:kOMStarRating url:url errorCode:errorCode];
 	return [theNumber doubleValue];
 }
@@ -541,7 +559,8 @@ const double kOMMaxRating = 5.0;
 //----------------------------------------------------------------------
 +(OMError)setXAttrMetaData:(id)plistObject metaDataKey:(NSString*)metaDataKey url:(NSURL*)url;
 {
-	return [self setXAttr:plistObject forKey:[self spotlightKey:metaDataKey] url:url];
+	OMError errorCode = [self setXAttr:plistObject forKey:[self spotlightKey:metaDataKey] url:url];
+	return errorCode;
 }
 
 #pragma mark global prefs for recent tags 
@@ -631,6 +650,70 @@ const double kOMMaxRating = 5.0;
 {
 	CFPreferencesAppSynchronize(CFSTR("com.openmeta.shared"));
 }
+#pragma mark registering openmeta attributes
++(void)checkForRegisterDone:(NSTimer*)inTimer;
+{
+	NSTask* theTask = [inTimer userInfo];
+	if (![theTask isRunning])
+	{
+		
+		// delete the file - spotlight has seen what we wanted it to see...
+		if ([[theTask arguments] count] > 0)
+		{
+			NSString* filePath = [[theTask arguments] objectAtIndex:0];
+			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+		}
+		[inTimer invalidate];
+	}
+}
+//----------------------------------------------------------------------
+//	registerOMAttributes
+//
+//	Purpose:	This should be called by any application that uses OpenMeta, to register the attributes that you are using with spotlight.
+//				Spotlight may not 'know' about say kOMUserTags unless you set a file with some user tags so that the OpenMeta spotlight importer can
+//				run on this one (fairly hidden file), which then tells spotlight to look up and use all the relevant 'stuff':
+//
+//				For the kOMUserTags example:
+//				kOMUserTags is an array of nsstrings. So create one, tags = [NSArray arrayWithObjects:@"foo", @"bar"], and make a dictionary entry for it:
+//				[myAttributeDict setObject:tags forKey:@"kOMUserTags"];
+//		
+//				Then add other attributes that your app uses:
+//				[myAttributeDict setObject:[NSNumber numberWithFloat:2] forKey:@"kOMStarRating"];
+
+//				Then register the types:
+//				[OpenMeta registerOMAttributes:myAttributeDict forAppName:@"myCoolApp"];
+//
+//				Doing all of this is necc to get searches like 'rated:>4' working in spotlight, and for the item 'Rated' to show up 
+//				in the Finder (and other apps) when you do a Find and then look under the little 'Other' menu. 
+//
+//				All this routine does is make a file that the importer will import, then let mdimport go at it, then remove the file. 
+//
+//	Inputs:		
+//
+//	Outputs:	
+//
+//  Created by Tom Andersen on 2009/01/21 
+//
+//----------------------------------------------------------------------
++(void)registerOMAttributes:(NSDictionary*)typicalAttributes forAppName:(NSString*)appName;
+{
+	// the spotlight plugin is registered to only import files with openmetaschema as an extension
+	appName = [appName stringByAppendingString:@".openmetaschema"];
+	
+	// create the file: - directory - spotlight will still import it.
+	NSString* path = [@"~/Library/Application Support/OpenMeta/schemaregister" stringByExpandingTildeInPath];
+	[[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil];
+	path = [path stringByAppendingPathComponent:appName];
+	
+	[typicalAttributes writeToFile:path atomically:YES];
+	
+	// get mdimport to run the file - it should do this automatically, but give it a bit 
+	NSArray* args = [NSArray arrayWithObject:path];
+	NSTask* importTask = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/mdimport" arguments:args];
+	
+	// check until it finds that the file is imported.
+	[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(checkForRegisterDone:) userInfo:importTask repeats:YES];
+}
 
 #pragma mark private 
 //----------------------------------------------------------------------
@@ -717,6 +800,10 @@ const double kOMMaxRating = 5.0;
 		returnVal = removexattr(pathUTF8, inKeyNameC, XATTR_NOFOLLOW);
 	}
 	
+	// only backup kOM - open meta stuff. 
+	if ([inKeyName hasPrefix:@"kOM"] || [inKeyName hasPrefix:[self spotlightKey:@"kOM"]])
+		[OpenMetaBackup backupMetadata:[url path]]; // backup all meta data changes. 
+	
 	if (returnVal == 0)
 		return OM_NoError;
 	
@@ -737,6 +824,10 @@ const double kOMMaxRating = 5.0;
 //----------------------------------------------------------------------
 +(id)getXAttr:(NSString*)inKeyName url:(NSURL*)url errorCode:(OMError*)errorCode;
 {
+	// we can't put restore meta here - as restoreMetadata calls us! 
+	// I put the restore on the usertags and ratings. Users will have to manually call restore for other keys 
+	//[OpenMetaBackup restoreMetadata:[url path]];
+	
 	NSString* path = [url path];
 	const char *pathUTF8 = [path fileSystemRepresentation];
 	if ([path length] == 0 || pathUTF8 == nil)

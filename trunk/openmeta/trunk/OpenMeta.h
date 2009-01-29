@@ -78,6 +78,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 
 /*
+    Note on Backup.
+	
+	Whenever you set an item with kOM* as the key, openmeta will make sure that there is a backup made of the tags, etc, that 
+	you have set on the file. The backups go into the folder ~/Library/Application Support/OpenMeta/backups/2009 etc. The backups are
+	one file per item, and are on a month by month basis. This may be all the backup you need, as time machine will back these up.
+	
     Note on Backup - "Time Machine", etc.
     When you set an xattr on a file, the modification date on the file is NOT changed, 
     but something called the status change time - does change.
@@ -87,10 +93,6 @@ OTHER DEALINGS IN THE SOFTWARE.
     It may be that you do not want to change the file modification date for each OpenMeta item that you write. If you do change the modification date, 
     it may make sense to not change it 'by much' - thus preserving most of the 
     meaning of the modification date, while still allowing TimeMachine to back the file up.
-    
-    You could/should ? also offer bulk backup of xattrs by creating a dictionary file of 
-    paths (alias data) and xattrs that you would like to backup. A file like this
-    will of course be backed up by time machine.
 */
 
 
@@ -111,7 +113,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 // error codes
 typedef long OMError;
 // on success return 0
-// If setting/getting user tags failed we return a negative error code for one of our errors, or the error code from the underlying api (currently setxattr)
+// If setting/getting user tags failed we return a negative error code for one of our errors, or the error code from the underlying api (setxattr)
 // If there is errno set after a call we return that. errno codes seem to be positive numbers
 #define OM_NoError (0)
 #define OM_ParamError (-1)
@@ -122,9 +124,10 @@ typedef long OMError;
 #define OM_WillNotSetkMDItemKey (-6)
 // OM_MetaDataNotChanged is returned from addUserTags if nothing had to be done.
 #define OM_MetaDataNotChanged (-7) 
-// A very common error code is ENOATTR - the attribute is not set on the file. 
+// A very common errno error code is ENOATTR - the attribute is not set on the file. 
 
 extern NSString* const kOMUserTags;
+extern NSString* const kOMUserTagTime; 
 extern NSString* const kOMBookmarks; // list of urls - bookmarks as nsarray nsstring 
 extern NSString* const kOMApproved;
 extern NSString* const kOMWorkflow;
@@ -252,5 +255,6 @@ extern const double kOMMaxRating;
 + (void)updatePrefsNewTags:(NSArray*)oldTags newTags:(NSArray*)newTags;
 + (void)synchRecentTagsPrefs;
 
++(void)registerOMAttributes:(NSDictionary*)typicalAttributes forAppName:(NSString*)appName;
 
 @end
