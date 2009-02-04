@@ -121,9 +121,12 @@
 +(NSString*)backupStamp:(NSString*)inPath;
 {
 	NSString* fileName = [self truncatedPathComponent:[inPath lastPathComponent]]; 
-	NSString* pathHash = [self hashString:[inPath stringByDeletingLastPathComponent]]; // hash is for the parent folder - this allows for searching for renamed files in some cases...
+	NSString* fileNameHash = [self hashString:[inPath lastPathComponent]]; // hash the name
+	NSString* folderHash = [self hashString:[inPath stringByDeletingLastPathComponent]]; // hash is for the parent folder - this allows for searching for renamed files in some cases...
 	NSString* backupStamp = [fileName stringByAppendingString:@"__"];
-	backupStamp = [backupStamp stringByAppendingString:pathHash];
+	backupStamp = [backupStamp stringByAppendingString:fileNameHash];
+	backupStamp = [backupStamp stringByAppendingString:@"__"];
+	backupStamp = [backupStamp stringByAppendingString:folderHash];
 	
 	return backupStamp;
 }	
