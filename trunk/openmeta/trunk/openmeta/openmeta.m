@@ -23,7 +23,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// omtool. A simple OpenMeta command line tool for setting and getting tags and ratings on any file. 
+// openmeta. A simple OpenMeta command line tool for setting and getting tags and ratings on any file. 
 // User defined tags: Guidelines
 // User defined tags are an array of (hopefully short) strings set on any file that there is write permission on.
 // These tags are meant to be 'human readable'. There is no concept of namespace. Control characters are not a good idea. 
@@ -40,19 +40,19 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 // The OpenMeta system is capable of storing almost any kind of data about a file, with Spotlight indexing working on 
 // that data 'which makes sense' to index in the Spotlight database. Please see the comments in OpenMeta.h and OpenMeta.m for more information.
-// omtool should be updated in the future to set / get many more types of metadata
+// openmeta should be updated in the future to set / get many more types of metadata
 
 // Time Machine note: When you set open meta data info (xattrs) on a file, Time Machine will not automatically back up the changed xattrs -
 // TimeMachine will only do that if the entire file has a new modification date. One way to do this is to bump the modification date of a 
 // file by one second when important meta data is set. touching a file to change the mod date to 'now' may not be the best idea.
-// omtool does not currently change the modification dates on any files on purpose. 
+// openmeta does not currently change the modification dates on any files on purpose. 
 
 // OpenMeta uses a spotlight importer to tell the Sporlight meta data system what various 
 // metadata names mean. For example with OpenMeta you can search for 'tag:foo' or rated:>4 in the 
 // OS X upper right global search command. To get this to work, we need to  
 // 1) have a plugin in this tool (or someplace else) that tells spotlight and 
 // 2) make one file that spotlight will index, so that the plugin will register, etc.
-// Perhaps there is a way to do this with a command line tool, but I could not figure that out, as omtool is not a package
+// Perhaps there is a way to do this with a command line tool, but I could not figure that out, as openmeta is not a package
 // So to get the UI goodness of being able to type tag:foo into the Spotlight search area you need to run Tagger (free from ironic) at least once,
 // leaving tagger or some other packaged UI application on your hard drive. 
 
@@ -285,21 +285,21 @@ int main (int argc, const char * argv[])
 	if (argc < 2) 
 	{
 		const char *usage =
-		"omtool version 0.1 by Tom Andersen code.google.com/p/openmeta/ \n\n"
-		"Usage: omtool [options] -p PATH[s] \n\n"
+		"openmeta version 0.1 by Tom Andersen code.google.com/p/openmeta/ \n\n"
+		"Usage: openmeta [options] -p PATH[s] \n\n"
 		"Note that commas are to be used nowhere - tag lists use quotes for two word tags in output\n\n"
-		"example (list tags and ratings):  omtool -p PATH\n"
-		"example (list tags and ratings multiple):  omtool -p PATH PATH\n"
-		"example (list tags): omtool -t -p PATH[s]\n"
-		"example (add tags): omtool -a foo bar -p PATH[s]\n"
-		"example (add tags with spaces): omtool -a \"three word tag\" \"foo bar\" -p PATH[s]\n"
-		"example (set tags):  omtool -s foo bar -p PATH[s]\n"
-		"example (clear all tags):  omtool -s -p PATH[s]\n"
-		"example (set rating 0 - 5 stars):  omtool -r 3.5 -p PATH[s]\n"
-		"example (print rating):  omtool -r -p PATH[s]\n"
-		"example (clear rating):  omtool -r 0.0 -p PATH[s]\n"
-		"example (lousy rating):  omtool -r 0.1 -p PATH[s]\n";
-		"example (to suppress output add -v):  omtool -v ... \n";
+		"example (list tags and ratings):  openmeta -p PATH\n"
+		"example (list tags and ratings multiple):  openmeta -p PATH PATH\n"
+		"example (list tags): openmeta -t -p PATH[s]\n"
+		"example (add tags): openmeta -a foo bar -p PATH[s]\n"
+		"example (add tags with spaces): openmeta -a \"three word tag\" \"foo bar\" -p PATH[s]\n"
+		"example (set tags):  openmeta -s foo bar -p PATH[s]\n"
+		"example (clear all tags):  openmeta -s -p PATH[s]\n"
+		"example (set rating 0 - 5 stars):  openmeta -r 3.5 -p PATH[s]\n"
+		"example (print rating):  openmeta -r -p PATH[s]\n"
+		"example (clear rating):  openmeta -r 0.0 -p PATH[s]\n"
+		"example (lousy rating):  openmeta -r 0.1 -p PATH[s]\n";
+		"example (to suppress output add -v):  openmeta -v ... \n";
 		fprintf(stderr, "%s", usage);
 		[pool drain];
 		exit(1);
@@ -348,7 +348,7 @@ int main (int argc, const char * argv[])
 	
 	if ([thePaths count] == 0)
 	{
-		PrintLine(@"omtool - no paths found! - use '-p' in front of paths");
+		PrintLine(@"openmeta - no paths found! - use '-p' in front of paths");
 		[pool drain];
 		exit(1);
 	}

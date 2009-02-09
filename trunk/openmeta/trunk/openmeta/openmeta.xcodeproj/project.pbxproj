@@ -8,9 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		6DA077310EF6EF74008B837B /* OpenMeta.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DA0772F0EF6EF74008B837B /* OpenMeta.m */; };
-		8DD76F9A0486AA7600D96B5E /* omtool.m in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* omtool.m */; settings = {ATTRIBUTES = (); }; };
+		6DC082D20F30CED400CF899F /* OpenMetaBackup.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DC082D10F30CED400CF899F /* OpenMetaBackup.m */; };
+		6DC082DC0F30D06D00CF899F /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC082DB0F30D06D00CF899F /* Carbon.framework */; };
+		8DD76F9A0486AA7600D96B5E /* openmeta.m in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* openmeta.m */; settings = {ATTRIBUTES = (); }; };
 		8DD76F9C0486AA7600D96B5E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08FB779EFE84155DC02AAC07 /* Foundation.framework */; };
-		8DD76F9F0486AA7600D96B5E /* omtool.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6859EA3029092ED04C91782 /* omtool.1 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -20,20 +21,22 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
-				8DD76F9F0486AA7600D96B5E /* omtool.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		08FB7796FE84155DC02AAC07 /* omtool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = omtool.m; sourceTree = "<group>"; };
+		08FB7796FE84155DC02AAC07 /* openmeta.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = openmeta.m; sourceTree = "<group>"; };
 		08FB779EFE84155DC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		32A70AAB03705E1F00C91783 /* omtool_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = omtool_Prefix.pch; sourceTree = "<group>"; };
+		32A70AAB03705E1F00C91783 /* openmeta_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = openmeta_Prefix.pch; sourceTree = "<group>"; };
 		6DA0772F0EF6EF74008B837B /* OpenMeta.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OpenMeta.m; path = ../OpenMeta.m; sourceTree = SOURCE_ROOT; };
 		6DA077300EF6EF74008B837B /* OpenMeta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenMeta.h; path = ../OpenMeta.h; sourceTree = SOURCE_ROOT; };
-		8DD76FA10486AA7600D96B5E /* omtool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = omtool; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6859EA3029092ED04C91782 /* omtool.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = omtool.1; sourceTree = "<group>"; };
+		6DC082D00F30CED400CF899F /* OpenMetaBackup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenMetaBackup.h; path = ../OpenMetaBackup.h; sourceTree = SOURCE_ROOT; };
+		6DC082D10F30CED400CF899F /* OpenMetaBackup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OpenMetaBackup.m; path = ../OpenMetaBackup.m; sourceTree = SOURCE_ROOT; };
+		6DC082DB0F30D06D00CF899F /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		6DDF0C3A0F405DD80025CDBF /* openmeta.1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.man; path = openmeta.1; sourceTree = "<group>"; };
+		8DD76FA10486AA7600D96B5E /* openmeta */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = openmeta; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +45,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8DD76F9C0486AA7600D96B5E /* Foundation.framework in Frameworks */,
+				6DC082DC0F30D06D00CF899F /* Carbon.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,8 +68,10 @@
 			children = (
 				6DA0772F0EF6EF74008B837B /* OpenMeta.m */,
 				6DA077300EF6EF74008B837B /* OpenMeta.h */,
-				32A70AAB03705E1F00C91783 /* omtool_Prefix.pch */,
-				08FB7796FE84155DC02AAC07 /* omtool.m */,
+				32A70AAB03705E1F00C91783 /* openmeta_Prefix.pch */,
+				08FB7796FE84155DC02AAC07 /* openmeta.m */,
+				6DC082D00F30CED400CF899F /* OpenMetaBackup.h */,
+				6DC082D10F30CED400CF899F /* OpenMetaBackup.m */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -73,6 +79,7 @@
 		08FB779DFE84155DC02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				6DC082DB0F30D06D00CF899F /* Carbon.framework */,
 				08FB779EFE84155DC02AAC07 /* Foundation.framework */,
 			);
 			name = "External Frameworks and Libraries";
@@ -81,7 +88,7 @@
 		1AB674ADFE9D54B511CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8DD76FA10486AA7600D96B5E /* omtool */,
+				8DD76FA10486AA7600D96B5E /* openmeta */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,7 +96,7 @@
 		C6859EA2029092E104C91782 /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
-				C6859EA3029092ED04C91782 /* omtool.1 */,
+				6DDF0C3A0F405DD80025CDBF /* openmeta.1 */,
 			);
 			name = Documentation;
 			sourceTree = "<group>";
@@ -97,9 +104,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8DD76F960486AA7600D96B5E /* omtool */ = {
+		8DD76F960486AA7600D96B5E /* openmeta */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1DEB927408733DD40010E9CD /* Build configuration list for PBXNativeTarget "omtool" */;
+			buildConfigurationList = 1DEB927408733DD40010E9CD /* Build configuration list for PBXNativeTarget "openmeta" */;
 			buildPhases = (
 				8DD76F990486AA7600D96B5E /* Sources */,
 				8DD76F9B0486AA7600D96B5E /* Frameworks */,
@@ -109,10 +116,10 @@
 			);
 			dependencies = (
 			);
-			name = omtool;
+			name = openmeta;
 			productInstallPath = "$(HOME)/bin";
 			productName = omtool;
-			productReference = 8DD76FA10486AA7600D96B5E /* omtool */;
+			productReference = 8DD76FA10486AA7600D96B5E /* openmeta */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -120,14 +127,14 @@
 /* Begin PBXProject section */
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = 1DEB927808733DD40010E9CD /* Build configuration list for PBXProject "omtool" */;
+			buildConfigurationList = 1DEB927808733DD40010E9CD /* Build configuration list for PBXProject "openmeta" */;
 			compatibilityVersion = "Xcode 3.1";
 			hasScannedForEncodings = 1;
 			mainGroup = 08FB7794FE84155DC02AAC07 /* omtool */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8DD76F960486AA7600D96B5E /* omtool */,
+				8DD76F960486AA7600D96B5E /* openmeta */,
 			);
 		};
 /* End PBXProject section */
@@ -137,8 +144,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8DD76F9A0486AA7600D96B5E /* omtool.m in Sources */,
+				8DD76F9A0486AA7600D96B5E /* openmeta.m in Sources */,
 				6DA077310EF6EF74008B837B /* OpenMeta.m in Sources */,
+				6DC082D20F30CED400CF899F /* OpenMetaBackup.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -168,9 +176,9 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = omtool_Prefix.pch;
+				GCC_PREFIX_HEADER = openmeta_Prefix.pch;
 				INSTALL_PATH = /usr/local/bin;
-				PRODUCT_NAME = omtool;
+				PRODUCT_NAME = openmeta;
 			};
 			name = Release;
 		};
@@ -203,7 +211,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1DEB927408733DD40010E9CD /* Build configuration list for PBXNativeTarget "omtool" */ = {
+		1DEB927408733DD40010E9CD /* Build configuration list for PBXNativeTarget "openmeta" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1DEB927508733DD40010E9CD /* Debug */,
@@ -212,7 +220,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1DEB927808733DD40010E9CD /* Build configuration list for PBXProject "omtool" */ = {
+		1DEB927808733DD40010E9CD /* Build configuration list for PBXProject "openmeta" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1DEB927908733DD40010E9CD /* Debug */,
