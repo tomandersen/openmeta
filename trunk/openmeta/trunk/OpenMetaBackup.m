@@ -836,7 +836,7 @@ BOOL gOMBackupThreadBusy = NO;
 	
 	if ([gOMBackupQueue count] > 0)
 	{
-		[self performSelector:@selector(doABackup:) withObject:nil afterDelay:0.05];
+		[self performSelector:@selector(doABackup:) withObject:nil afterDelay:0.02];
 	}
 	else
 	{
@@ -913,6 +913,9 @@ BOOL gOMBackupThreadBusy = NO;
 		// store path - which is in the alias too but not directly accessible
 		if (inPath)
 			[outerDictionary setObject:inPath forKey:@"bu_path"];
+		
+		// store date that we did the backup
+		[outerDictionary setObject:[NSDate date] forKey:@"bu_date"];
 		
 		
 		// place to put data: 

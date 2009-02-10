@@ -590,6 +590,19 @@ const double kOMMaxRating = 5.0;
 	return outArray;
 }
 
+//----------------------------------------------------------------------
+//	updatePrefsNewTags
+//
+//	Purpose:	call this to update the list of recent tags. You pass in two arrays, one is the original set of tags, the other is the set of all tags, 
+//				this will write to the shared OpenMeta prefs for recently entered tags.
+//
+//	Inputs:		
+//
+//	Outputs:	
+//
+//  Created by Tom Andersen on 2009/02/10 
+//
+//----------------------------------------------------------------------
 +(void)updatePrefsNewTags:(NSArray*)oldTags newTags:(NSArray*)newTags;
 {
 	// we need to update the prefs with the recently entered tags. We limit the list to being 200 tags, and the most recently entered tags are at the top of the list.
@@ -613,25 +626,44 @@ const double kOMMaxRating = 5.0;
 		[currentRecents addObjectsFromArray:(NSArray*)prefArray];
 		CFRelease(prefArray);
 	}
+	
 	// Case insensitivity is important - we also need to preserve case, but the recentTags list in the prefs only should have 
 	// one version of each tag (eg only 'Tom' and not TOM, tom, ToM...)
-	// Unfortunately, I need to create a copy of the array with lower cased strings (infortunate from performance point only..)
-	NSMutableArray* lowerCasedCurrents = [NSMutableArray arrayWithCapacity:[currentRecents count]];
-	for (NSString* aRecent in currentRecents)
-		[lowerCasedCurrents addObject:[aRecent lowercaseString]];
+	// The way to do this is to use a dictionary, then use the current recents to order the output:
+	const int kMaxRecentsKept = 200;
 	
+	NSMutableDictionary* recentsDict = [NSMutableDictionary dictionary];
+	for (NSString* aRecent in currentRecents)
+		[recentsDict setObject:aRecent forKey:[aRecent lowercaseString]];
+	for (NSString* tagToAdd in tagsToAdd)
+		[recentsDict setObject:tagToAdd forKey:[tagToAdd lowercaseString]];
+	
+	// now use ordering from the two arrays to create the new array:
+	NSMutableArray* newRecents = [NSMutableArray array];
 	for (NSString* tagToAdd in tagsToAdd)
 	{
-		NSUInteger foundPosition = [lowerCasedCurrents indexOfObject:[tagToAdd lowercaseString]];
-		if (foundPosition != NSNotFound)
-			[currentRecents removeObjectAtIndex:foundPosition];
-		else if ([currentRecents count] > 200)
-			[currentRecents removeLastObject];
-			
-		[currentRecents insertObject:tagToAdd atIndex:0];
+		if ([recentsDict objectForKey:[tagToAdd lowercaseString]])
+		{
+			[newRecents addObject:tagToAdd];
+			[recentsDict removeObjectForKey:[tagToAdd lowercaseString]]; // remove from dict to signal that it is already added
+		}
+		if ([newRecents count] > kMaxRecentsKept) // we can't let this recent pool of tags grow without limit.
+			break;
+	}
+	
+	// now add the current recents in order, but only if they have not been added before.
+	for (NSString* aRecent in currentRecents)
+	{
+		if ([recentsDict objectForKey:[aRecent lowercaseString]])
+		{
+			[newRecents addObject:aRecent];
+			[recentsDict removeObjectForKey:[aRecent lowercaseString]]; // remove from dict to signal that it is already added
+		}
+		if ([newRecents count] > kMaxRecentsKept) // we can't let this recent pool of tags grow without limit.
+			break;
 	}
 
-	CFPreferencesSetAppValue(CFSTR("recentlyEnteredTags"), (CFPropertyListRef) currentRecents, CFSTR("com.openmeta.shared"));
+	CFPreferencesSetAppValue(CFSTR("recentlyEnteredTags"), (CFPropertyListRef) newRecents, CFSTR("com.openmeta.shared"));
 }
 
 //----------------------------------------------------------------------
