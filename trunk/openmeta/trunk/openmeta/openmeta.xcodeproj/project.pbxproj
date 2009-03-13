@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6D4BC6620F6AA97000B5E480 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D4BC6610F6AA97000B5E480 /* Carbon.framework */; };
 		6DA077310EF6EF74008B837B /* OpenMeta.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DA0772F0EF6EF74008B837B /* OpenMeta.m */; };
 		6DC082D20F30CED400CF899F /* OpenMetaBackup.m in Sources */ = {isa = PBXBuildFile; fileRef = 6DC082D10F30CED400CF899F /* OpenMetaBackup.m */; };
-		6DC082DC0F30D06D00CF899F /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DC082DB0F30D06D00CF899F /* Carbon.framework */; };
-		8DD76F9A0486AA7600D96B5E /* openmeta.m in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* openmeta.m */; settings = {ATTRIBUTES = (); }; };
+		8DD76F9A0486AA7600D96B5E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8DD76F9C0486AA7600D96B5E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08FB779EFE84155DC02AAC07 /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
@@ -27,14 +27,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		08FB7796FE84155DC02AAC07 /* openmeta.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = openmeta.m; sourceTree = "<group>"; };
+		08FB7796FE84155DC02AAC07 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		08FB779EFE84155DC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32A70AAB03705E1F00C91783 /* openmeta_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = openmeta_Prefix.pch; sourceTree = "<group>"; };
+		6D4BC6610F6AA97000B5E480 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		6DA0772F0EF6EF74008B837B /* OpenMeta.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OpenMeta.m; path = ../OpenMeta.m; sourceTree = SOURCE_ROOT; };
 		6DA077300EF6EF74008B837B /* OpenMeta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenMeta.h; path = ../OpenMeta.h; sourceTree = SOURCE_ROOT; };
 		6DC082D00F30CED400CF899F /* OpenMetaBackup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenMetaBackup.h; path = ../OpenMetaBackup.h; sourceTree = SOURCE_ROOT; };
 		6DC082D10F30CED400CF899F /* OpenMetaBackup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OpenMetaBackup.m; path = ../OpenMetaBackup.m; sourceTree = SOURCE_ROOT; };
-		6DC082DB0F30D06D00CF899F /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		6DDF0C3A0F405DD80025CDBF /* openmeta.1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.man; path = openmeta.1; sourceTree = "<group>"; };
 		8DD76FA10486AA7600D96B5E /* openmeta */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = openmeta; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -45,7 +45,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8DD76F9C0486AA7600D96B5E /* Foundation.framework in Frameworks */,
-				6DC082DC0F30D06D00CF899F /* Carbon.framework in Frameworks */,
+				6D4BC6620F6AA97000B5E480 /* Carbon.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,7 +69,7 @@
 				6DA0772F0EF6EF74008B837B /* OpenMeta.m */,
 				6DA077300EF6EF74008B837B /* OpenMeta.h */,
 				32A70AAB03705E1F00C91783 /* openmeta_Prefix.pch */,
-				08FB7796FE84155DC02AAC07 /* openmeta.m */,
+				08FB7796FE84155DC02AAC07 /* main.m */,
 				6DC082D00F30CED400CF899F /* OpenMetaBackup.h */,
 				6DC082D10F30CED400CF899F /* OpenMetaBackup.m */,
 			);
@@ -79,7 +79,7 @@
 		08FB779DFE84155DC02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				6DC082DB0F30D06D00CF899F /* Carbon.framework */,
+				6D4BC6610F6AA97000B5E480 /* Carbon.framework */,
 				08FB779EFE84155DC02AAC07 /* Foundation.framework */,
 			);
 			name = "External Frameworks and Libraries";
@@ -144,7 +144,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8DD76F9A0486AA7600D96B5E /* openmeta.m in Sources */,
+				8DD76F9A0486AA7600D96B5E /* main.m in Sources */,
 				6DA077310EF6EF74008B837B /* OpenMeta.m in Sources */,
 				6DC082D20F30CED400CF899F /* OpenMetaBackup.m in Sources */,
 			);
@@ -177,6 +177,8 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = openmeta_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "OPEN_META_NO_UI=1";
+				GCC_VERSION = 4.2;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = openmeta;
 			};

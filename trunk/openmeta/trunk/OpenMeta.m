@@ -40,19 +40,30 @@ const long kMaxDataSize = 4096; // Limit maximum data that can be stored,
 
 NSString* const kOMUserTags = @"kOMUserTags";
 NSString* const kOMUserTagTime = @"kOMUserTagTime";
+NSString* const kOMDocumentDate = @"kOMDocumentDate";
 NSString* const kOMBookmarks = @"kOMBookmarks";
-NSString* const kOMApproved = @"kOMApproved";
-NSString* const kOMWorkflow = @"kOMWorkflow";
-NSString* const kOMProjects = @"kOMProjects";
-NSString* const kOMStarRating = @"kOMStarRating";
-NSString* const kOMHidden = @"kOMHidden";
+NSString* const kOMUserTagApplication = @"kOMUserTagApplication";
 
 const double kOMMaxRating = 5.0;
 
 
+NSString* const OM_ParamErrorString = @"Open Meta parameter error";
+NSString* const OM_NoDataFromPropertyListErrorString = @"The data requested or attempted to be set could not be made into a apple property list";
+NSString* const OM_NoMDItemFoundErrorString = @"The path appears not to point to a valid item on disk";
+NSString* const OM_CantSetMetadataErrorString = @"OpenMeta can't set the meta data";
+NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as binary plist must be less than (perhaps 4k?) some number of bytes";
+
+static NSString* ErrnoString(int errnoErr)
+{
+	// the error is an errno from the system:
+	char errorMessage[1024];
+	errorMessage[0] = 0;
+	strerror_r(errnoErr, errorMessage, 1024);
+	return [NSString stringWithFormat:@"errno error: %d, %s", (int)errnoErr, errorMessage];
+}
+
 @interface OpenMeta (Private)
 +(BOOL)validateAsArrayOfStrings:(NSArray*)array;
-+(NSString*)spotlightKey:(NSString*)inKeyName;
 +(NSArray*)removeDuplicateTags:(NSArray*)tags;
 @end
 
@@ -72,10 +83,10 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/07/17 
 //
 //----------------------------------------------------------------------
-+(OMError)setUserTags:(NSArray*)tags url:(NSURL*)url;
++(NSError*)setUserTags:(NSArray*)tags path:(NSString*)path;
 {
 	if (![self validateAsArrayOfStrings:tags])
-		return OM_ParamError;
+		return [NSError errorWithDomain:@"openmeta" code:OM_ParamError userInfo:[NSDictionary dictionaryWithObject:OM_ParamErrorString forKey:@"info"]];
 	
 	tags = [self removeDuplicateTags:tags];
 	
@@ -83,10 +94,10 @@ const double kOMMaxRating = 5.0;
 	// so it is impossible to use a single, for example comma delimited string to hold the values. 
 	// NSArrays can be written out as a plist, so that is what we will do. 
 	// Write the plist out as plain xml text, so as to allow someone not using cocoa to read out the values:
-	OMError outError = [self setNSArrayMetaData:tags metaDataKey:kOMUserTags url:url];
+	NSError* outError = [self setNSArrayMetaData:tags metaDataKey:kOMUserTags path:path];
 	
 	// set the time that the user tagged the document:
-	[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime url:url];
+	[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime path:path];
 	
 	return outError; 
 }
@@ -94,7 +105,7 @@ const double kOMMaxRating = 5.0;
 //----------------------------------------------------------------------
 //	clearUserTags
 //
-//	Purpose:	removes the passed tags. If the tags are already in, then OM_MetaDataNotChanged is returned
+//	Purpose:	removes the passed tags. If the tags are already in, then no error (nil) is returned
 //
 //	Inputs:		
 //
@@ -103,14 +114,17 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/12/10 
 //
 //----------------------------------------------------------------------
-+(OMError)clearUserTags:(NSArray*)tags url:(NSURL*)url;
++(NSError*)clearUserTags:(NSArray*)tags path:(NSString*)path;
 {
 	if (![self validateAsArrayOfStrings:tags])
-		return OM_ParamError;
+		return [NSError errorWithDomain:@"openmeta" code:OM_ParamError userInfo:[NSDictionary dictionaryWithObject:OM_ParamErrorString forKey:@"info"]];
 
 	// we need to be careful to be case insensitive case preserving here:
-	OMError errorCode = OM_NoError;
-	NSArray* originalTags = [self getNSArrayMetaData:kOMUserTags url:url errorCode:&errorCode];
+	NSError* error = nil;
+	NSArray* originalTags = [self getNSArrayMetaData:kOMUserTags path:path error:&error];
+	if (error)
+		return error;
+		
 	NSMutableArray* newArray = [NSMutableArray arrayWithCapacity:[originalTags count]];
 	
 	for (NSString* aTag in originalTags)
@@ -129,11 +143,11 @@ const double kOMMaxRating = 5.0;
 	}
 	 
 	if ([newArray count] == [originalTags count])
-		return OM_MetaDataNotChanged;
+		return nil; // not an error to clear a tag that was not there.
 	
-	[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime url:url];
+	[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime path:path];
 	
-	return [self setNSArrayMetaData:newArray metaDataKey:kOMUserTags url:url];
+	return [self setNSArrayMetaData:newArray metaDataKey:kOMUserTags path:path];
 }
 
 
@@ -142,7 +156,7 @@ const double kOMMaxRating = 5.0;
 //----------------------------------------------------------------------
 //	addUserTags
 //
-//	Purpose:	adds the tags to the current tags. If the tags are already in, then OM_MetaDataNotChanged is returned
+//	Purpose:	adds the tags to the current tags. If the tags are already in, then then no error (nil) is returned
 //
 //	Inputs:		
 //
@@ -151,26 +165,29 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/12/10 
 //
 //----------------------------------------------------------------------
-+(OMError)addUserTags:(NSArray*)tags url:(NSURL*)url;
++(NSError*)addUserTags:(NSArray*)tags path:(NSString*)path;
 {
 	if (![self validateAsArrayOfStrings:tags])
-		return OM_ParamError;
+		return [NSError errorWithDomain:@"openmeta" code:OM_ParamError userInfo:[NSDictionary dictionaryWithObject:OM_ParamErrorString forKey:@"info"]];
 
 	// we need to be careful to be case insensitive case preserving here:
-	OMError errorCode = OM_NoError;
-	NSArray* originalTags = [self getNSArrayMetaData:kOMUserTags url:url errorCode:&errorCode];
+	NSError* error = nil;
+	NSArray* originalTags = [self getNSArrayMetaData:kOMUserTags path:path error:&error];
+	if (error)
+		return error;
+	
 	NSMutableArray* newArray = [NSMutableArray arrayWithArray:originalTags]; 
 	[newArray addObjectsFromArray:tags];
 	NSArray* cleanedTags = [self removeDuplicateTags:newArray];
 	
 	if (![originalTags isEqualToArray:cleanedTags])
 	{
-		[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime url:url];
+		[self setXAttrMetaData:[NSDate date] metaDataKey:kOMUserTagTime path:path];
 		
-		return [self setNSArrayMetaData:cleanedTags metaDataKey:kOMUserTags url:url];
+		return [self setNSArrayMetaData:cleanedTags metaDataKey:kOMUserTags path:path];
 	}
 		
-	return OM_MetaDataNotChanged;
+	return nil; // no error if we did not have to do anything
 }
 
 
@@ -186,12 +203,12 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/07/17 
 //
 //----------------------------------------------------------------------
-+(NSArray*)getUserTags:(NSURL*)url errorCode:(OMError*)errorCode;
++(NSArray*)getUserTags:(NSString*)path error:(NSError**)error;
 {
 	// I put restore meta here - as restoreMetadata calls us! 
 	// I put the restore on the usertags and ratings. Users will have to manually call restore for other keys 
-	[OpenMetaBackup restoreMetadata:[url path]];
-	return [self getNSArrayMetaData:kOMUserTags url:url errorCode:errorCode];
+	[OpenMetaBackup restoreMetadata:path];
+	return [self getNSArrayMetaData:kOMUserTags path:path error:error];
 }
 
 
@@ -208,48 +225,28 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/07/17 
 //
 //----------------------------------------------------------------------
-+(OMError)setRating:(double)rating05 url:(NSURL*)url;
++(NSError*)setRating:(double)rating05 path:(NSString*)path;
 {
 	if (rating05 <= 0.0)
-		return [self setXAttrMetaData:nil metaDataKey:kOMStarRating url:url];
+		return [self setXAttrMetaData:nil metaDataKey:(NSString*)kMDItemStarRating path:path];
 	
 	if (rating05 > kOMMaxRating)
 		rating05 = kOMMaxRating;
 		
 	NSNumber* ratingNS = [NSNumber numberWithDouble:rating05];
-	return [self setXAttrMetaData:ratingNS metaDataKey:kOMStarRating url:url];
+	return [self setXAttrMetaData:ratingNS metaDataKey:(NSString*)kMDItemStarRating path:path];
 }
 
-+(double)getRating:(NSURL*)url errorCode:(OMError*)errorCode;
++(double)getRating:(NSString*)path error:(NSError**)error;
 {
 	// ratings and tags are the only 'auto - restored' items 
-	[OpenMetaBackup restoreMetadata:[url path]];
-	NSNumber* theNumber = [self getXAttrMetaData:kOMStarRating url:url errorCode:errorCode];
+	[OpenMetaBackup restoreMetadata:path];
+	NSNumber* theNumber = [self getXAttrMetaData:(NSString*)kMDItemStarRating path:path error:error];
 	return [theNumber doubleValue];
 }
 
-+(OMError)hide:(NSURL*)url;
-{
-	return [self setXAttrMetaData:[NSNumber numberWithBool:YES] metaDataKey:kOMHidden url:url];
-}
-
-+(OMError)unhide:(NSURL*)url;
-{
-	return [self setXAttrMetaData:nil metaDataKey:kOMHidden url:url];
-}
-
-+(BOOL)isHidden:(NSURL*)url errorCode:(OMError*)errorCode;
-{
-	NSNumber* theNumber = [self getXAttrMetaData:kOMHidden url:url errorCode:errorCode];
-	if (theNumber == nil)
-		return NO;
-	
-	return [theNumber boolValue];
-}
-
-
 //----------------------------------------------------------------------
-//	setString:keyName:url:
+//	setString:keyName:path:
 //
 //	Purpose:	simple way to set a single string on a key.
 //				use these when you only want to store a single string in the spotlightDB under a key
@@ -261,15 +258,15 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/09/21 
 //
 //----------------------------------------------------------------------
-+(OMError)setString:(NSString*)string keyName:(NSString*)keyName url:(NSURL*)url;
++(NSError*)setString:(NSString*)string keyName:(NSString*)keyName path:(NSString*)path;
 {
-	OMError	theErr = [self setXAttrMetaData:string metaDataKey:keyName url:url];
+	NSError*	theErr = [self setXAttrMetaData:string metaDataKey:keyName path:path];
 	return theErr;
 }
 
-+(NSString*)getString:(NSString*)keyName url:(NSURL*)url errorCode:(OMError*)errorCode;
++(NSString*)getString:(NSString*)keyName path:(NSString*)path error:(NSError**)error;
 {
-	return [self getXAttrMetaData:keyName url:url errorCode:errorCode];
+	return [self getXAttrMetaData:keyName path:path error:error];
 }
 
 //----------------------------------------------------------------------
@@ -287,7 +284,7 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/07/17 
 //
 //----------------------------------------------------------------------
-+(OMError)setDictionaries:(NSArray*)arrayOfDicts keyName:(NSString*)keyName url:(NSURL*)url;
++(NSError*)setDictionaries:(NSArray*)arrayOfDicts keyName:(NSString*)keyName path:(NSString*)path;
 {
 	NSMutableArray* spotlightArray = [NSMutableArray array];
 	BOOL needAllDictsSet = NO;
@@ -308,11 +305,11 @@ const double kOMMaxRating = 5.0;
 	
 	// the searchable thing is optional if the spotlightArray is empty this will erase for that key too.
 	// set as array - to set single
-	OMError theErr = [self setXAttrMetaData:spotlightArray metaDataKey:keyName url:url];
+	NSError* theErr = [self setXAttrMetaData:spotlightArray metaDataKey:keyName path:path];
 		
 	// set all the data to the passed key - but only set if there are other keys:
-	if (theErr == OM_NoError && needAllDictsSet)
-		theErr = [self setXAttr:arrayOfDicts forKey:keyName url:url];
+	if (theErr == nil && needAllDictsSet)
+		theErr = [self setXAttr:arrayOfDicts forKey:keyName path:path];
 	
 	return theErr;
 }
@@ -330,25 +327,17 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/07/17 
 //
 //----------------------------------------------------------------------
-+(NSArray*)getDictionaries:(NSString*)keyName url:(NSURL*)url errorCode:(OMError*)errorCode;
++(NSArray*)getDictionaries:(NSString*)keyName path:(NSString*)path error:(NSError**)error;
 {
-	return [self getXAttr:keyName url:url errorCode:errorCode];
+	return [self getXAttr:keyName path:path error:error];
 }
 
-+(NSArray*)getDictionariesNames:(NSString*)keyName url:(NSURL*)url errorCode:(OMError*)errorCode;
++(NSArray*)getDictionariesNames:(NSString*)keyName path:(NSString*)path error:(NSError**)error;
 {
-	return [self getXAttrMetaData:keyName url:url errorCode:errorCode];
+	return [self getXAttrMetaData:keyName path:path error:error];
 }
 
 #pragma mark getting/setting on multiple files 
-
-+(NSArray*)urlsFromFilePaths:(NSArray*)inFilePaths;
-{
-	NSMutableArray* outURLs = [NSMutableArray array];
-	for (NSString* path in inFilePaths)
-		[outURLs addObject:[NSURL fileURLWithPath:path]];
-	return outURLs;
-}
 
 //----------------------------------------------------------------------
 //	getCommonUserTags
@@ -363,22 +352,26 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/10/01 
 //
 //----------------------------------------------------------------------
-+(NSArray*)getCommonUserTags:(NSArray*)urls errorCode:(OMError*)errorCode;
++(NSArray*)getCommonUserTags:(NSArray*)paths error:(NSError**)error;
 {
 	// order is to 'be preserved' - but for multiple documents - we use the first passed doc
-	if ([urls count] == 1)
-		return [self getUserTags:[urls lastObject] errorCode:errorCode];
+	if ([paths count] == 1)
+		return [self getUserTags:[paths lastObject] error:error];
 	
 	NSMutableDictionary* theCommonTags = [NSMutableDictionary dictionary];
 	
 	NSArray* firstSetOfTags = nil;
-	for (NSURL* aURL in urls)
+	for (NSString* aPath in paths)
 	{
 		// go through each document, extracting tags. 
-		*errorCode = OM_NoError;
-		NSArray* tags = [self getUserTags:aURL errorCode:errorCode];
-		if ([tags count] == 0 || *errorCode != OM_NoError)
+		NSError* theError = nil;
+		NSArray* tags = [self getUserTags:aPath error:&theError];
+		if ([tags count] == 0 || theError != nil)
+		{
+			if (error)
+				*error = theError;
 			return [NSArray array];
+		}
 		
 		// if we made it here it means that this document has some tags: if there are none in the 
 		// commonTags yet it must mean that we have not added the original set:
@@ -413,6 +406,7 @@ const double kOMMaxRating = 5.0;
 	return [self orderedArrayWithDict:theCommonTags sortHint:firstSetOfTags];
 }
 
+
 //----------------------------------------------------------------------
 //	setCommonUserTags
 //
@@ -428,18 +422,18 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/10/01 
 //
 //----------------------------------------------------------------------
-+(OMError)setCommonUserTags:(NSArray*)urls originalCommonTags:(NSArray*)originalTags replaceWith:(NSArray*)replaceWith;
++(NSError*)setCommonUserTags:(NSArray*)paths originalCommonTags:(NSArray*)originalTags replaceWith:(NSArray*)replaceWith;
 {
 	if ([originalTags count] == 0 && [replaceWith count] == 0)
-		return OM_NoError;
+		return nil;
 	
 	// we try to preserve order, and we allow case changes, so original tags as @"foo" @"bar" is different from @"bar" @"Foo"
 	// but all new tags are always added to the end. 
-	OMError error = OM_NoError;
-	for (NSURL* aURL in urls)
+	NSError* error = nil;
+	for (NSString* aPath in paths)
 	{
 		// get the tags currently on the document
-		NSArray* tags = [self getUserTags:aURL errorCode:&error];
+		NSArray* tags = [self getUserTags:aPath error:&error];
 		NSMutableDictionary* currentTags = [NSMutableDictionary dictionary];
 		for (NSString* aTag in tags)
 			[currentTags setObject:aTag forKey:[aTag lowercaseString]];
@@ -461,10 +455,10 @@ const double kOMMaxRating = 5.0;
 			[newTags addObject:aTag];
 		
 		// write out the tags:
-		OMError errorOnThisOne = [self setUserTags:newTags url:aURL];
+		NSError* errorOnThisOne = [self setUserTags:newTags path:aPath];
 		
 		// if there was an error, don't abort the whoe thing, but rather just return an error code at the end:
-		if (errorOnThisOne != OM_NoError)
+		if (errorOnThisOne != nil)
 			error = errorOnThisOne;
 	}
 	return error;
@@ -483,14 +477,14 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/12/10 
 //
 //----------------------------------------------------------------------
-+(NSArray*)getNSArrayMetaData:(NSString*)metaDataKey url:(NSURL*)url errorCode:(OMError*)errorCode;
++(NSArray*)getNSArrayMetaData:(NSString*)metaDataKey path:(NSString*)path error:(NSError**)error;
 {
-	return (NSArray*) [self getXAttrMetaData:metaDataKey url:url errorCode:errorCode];
+	return (NSArray*) [self getXAttrMetaData:metaDataKey path:path error:error];
 }
 
-+(OMError)setNSArrayMetaData:(NSArray*)array metaDataKey:(NSString*)metaDataKey url:(NSURL*)url;
++(NSError*)setNSArrayMetaData:(NSArray*)array metaDataKey:(NSString*)metaDataKey path:(NSString*)path;
 {
-	return [self setXAttrMetaData:array metaDataKey:metaDataKey url:url];
+	return [self setXAttrMetaData:array metaDataKey:metaDataKey path:path];
 }
 
 //----------------------------------------------------------------------
@@ -505,11 +499,11 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/12/10 
 //
 //----------------------------------------------------------------------
-+(OMError)addToNSArrayMetaData:(NSArray*)itemsToAdd metaDataKey:(NSString*)metaDataKey url:(NSURL*)url;
++(NSError*)addToNSArrayMetaData:(NSArray*)itemsToAdd metaDataKey:(NSString*)metaDataKey path:(NSString*)path;
 {
 	// get the current, then add the items in, checking for duplicates, then write out the result, if we need to.
-	OMError errorCode = OM_NoError;
-	NSMutableArray* newArray = [NSMutableArray arrayWithArray:[self getNSArrayMetaData:metaDataKey url:url errorCode:&errorCode]]; 
+	NSError* error = nil;
+	NSMutableArray* newArray = [NSMutableArray arrayWithArray:[self getNSArrayMetaData:metaDataKey path:path error:&error]]; 
 	
 	BOOL needToSet = NO;
 	for (id anItem in itemsToAdd)
@@ -522,9 +516,9 @@ const double kOMMaxRating = 5.0;
 	}
 	
 	if (needToSet)
-		errorCode = [self setXAttrMetaData:newArray metaDataKey:metaDataKey url:url];
+		error = [self setXAttrMetaData:newArray metaDataKey:metaDataKey path:path];
 	
-	return OM_MetaDataNotChanged;
+	return error;
 }
 
 
@@ -540,9 +534,9 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/12/10 
 //
 //----------------------------------------------------------------------
-+(id)getXAttrMetaData:(NSString*)metaDataKey url:(NSURL*)url errorCode:(OMError*)errorCode;
++(id)getXAttrMetaData:(NSString*)metaDataKey path:(NSString*)path error:(NSError**)error;
 {
-	return [self getXAttr:[self spotlightKey:metaDataKey] url:url errorCode:errorCode];
+	return [self getXAttr:[self spotlightKey:metaDataKey] path:path error:error];
 }
 
 //----------------------------------------------------------------------
@@ -557,10 +551,10 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/12/10 
 //
 //----------------------------------------------------------------------
-+(OMError)setXAttrMetaData:(id)plistObject metaDataKey:(NSString*)metaDataKey url:(NSURL*)url;
++(NSError*)setXAttrMetaData:(id)plistObject metaDataKey:(NSString*)metaDataKey path:(NSString*)path;
 {
-	OMError errorCode = [self setXAttr:plistObject forKey:[self spotlightKey:metaDataKey] url:url];
-	return errorCode;
+	NSError* error = [self setXAttr:plistObject forKey:[self spotlightKey:metaDataKey] path:path];
+	return error;
 }
 
 #pragma mark global prefs for recent tags 
@@ -698,6 +692,19 @@ const double kOMMaxRating = 5.0;
 		[inTimer invalidate];
 	}
 }
+
++(void)registerUsualOMAttributes;
+{
+	NSDictionary* stuffWeUse = [NSDictionary dictionaryWithObjectsAndKeys:
+								[NSArray arrayWithObjects:@"openMeta1", @"openMeta2", nil], @"kOMUserTags",
+								[NSDate date], @"kOMUserTagTime",
+								[NSDate date], @"kOMDocumentDate",
+								[NSArray arrayWithObjects:@"bookmark1", @"bookmark2", nil], @"kOMBookmarks",
+								nil];
+
+	[OpenMeta registerOMAttributes:stuffWeUse forAppName:@"openMeta"];
+}
+
 //----------------------------------------------------------------------
 //	registerOMAttributes
 //
@@ -710,7 +717,7 @@ const double kOMMaxRating = 5.0;
 //				[myAttributeDict setObject:tags forKey:@"kOMUserTags"];
 //		
 //				Then add other attributes that your app uses:
-//				[myAttributeDict setObject:[NSNumber numberWithFloat:2] forKey:@"kOMStarRating"];
+//				[myAttributeDict setObject:[NSNumber numberWithFloat:2] forKey:(NSString*)kMDItemStarRating];
 
 //				Then register the types:
 //				[OpenMeta registerOMAttributes:myAttributeDict forAppName:@"myCoolApp"];
@@ -740,8 +747,16 @@ const double kOMMaxRating = 5.0;
 	[typicalAttributes writeToFile:path atomically:YES];
 	
 	// get mdimport to run the file - it should do this automatically, but give it a bit 
+	NSTask* importTask = [[[NSTask alloc] init] autorelease];
+	[importTask setLaunchPath:@"/usr/bin/mdimport"];
 	NSArray* args = [NSArray arrayWithObject:path];
-	NSTask* importTask = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/mdimport" arguments:args];
+	[importTask setArguments:args];
+	
+	// we want to supress output to anywhere. 
+	[importTask setStandardOutput:[NSPipe pipe]];
+	[importTask setStandardError:[NSPipe pipe]];
+	
+	[importTask launch];
 	
 	// check until it finds that the file is imported.
 	[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(checkForRegisterDone:) userInfo:importTask repeats:YES];
@@ -778,24 +793,26 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/07/17 
 //
 //----------------------------------------------------------------------
-+(OMError)setXAttr:(id)plistObject forKey:(NSString*)inKeyName url:(NSURL*)url;
++(NSError*)setXAttr:(id)plistObject forKey:(NSString*)inKeyName path:(NSString*)path;
 {
-	NSString* path = [url path];
 	const char *pathUTF8 = [path fileSystemRepresentation];
 	if ([path length] == 0 || pathUTF8 == nil)
 	{
-		return OM_ParamError;
+		return [NSError errorWithDomain:@"openmeta" code:OM_ParamError userInfo:[NSDictionary dictionaryWithObject:OM_ParamErrorString forKey:@"info"]];
 	}
 	
-	// If you 'overwrite' a kMDItem* (or really com.apple.metadata:kMDItem* ) with a setxattr call, you are asking for big trouble.
-	// 1) the value that you set will override the value that the spotlight importer sets on the file, so when a user changes an exif data 
-	// or other thing, then this change will not be reflected in the spotlgiht DB, rather your setxattr will override it - which is totally confusing to the user, so don't do it.
-	if ([inKeyName rangeOfString:@"kMDItem" options:NSLiteralSearch].location != NSNotFound)
-	{
-		return OM_WillNotSetkMDItemKey;
-	}
-	
-	
+//		 I used to consider it 'wrong' to be able to override kMDItem* stuff with OpenMeta, and it is for tags. Tags though are a special case,
+//		 in that there could be for instance 6 keywords (relevant - ish) set on a PDF, and you want to add the open meta tag 'special' to it. You don't want to 
+//		 lose the 6 keywords do you? There are also lots of images from image houses that have a lot of keyword 'noise' in them that you might not want
+//		 cluttering up your tags that you have set. i have found png files with 50 keywords set. html can also be bad for this. So users want the ability to only look at tags that they have set,
+//		 or a combination of keywords and tags.
+	// BUT - look at ratings - ratings are just one number - it is likely that you don't want to as a user, have to think about 2 different places ratings 
+	// could be stored, (like tags vs keywords), but would rather have just the one concept of 'rating'. It is also ok, even deisrable, to be able to override the rating
+	// on a file. So ratings _should_ use kMDItemStarRating.
+	// Also look at 'less used' keys - like camera (kMDItemAcquisitionMake and  kMDItemAcquisitionModel) - although they will be set on perhaps thousands of photos in 
+	// what if you run into a PDF that is a picture taken with a camera, and you want to tag that? openmeta will allow you to to tag it with kMDItemAcquisitionMake and kMDItemAcquisitionModel
+	// so that searches for camera make an model do not have to 'know about openmeta' to work. 
+	// Plus it's always good to keep the number of keys down.
 	
 	const char* inKeyNameC = [inKeyName fileSystemRepresentation];
 	
@@ -805,16 +822,16 @@ const double kOMMaxRating = 5.0;
 	NSData* dataToSendNS = nil;
 	if (plistObject)
 	{
-		NSString *error = nil;
+		NSString *errorString = nil;
 		dataToSendNS = [NSPropertyListSerialization dataFromPropertyList:plistObject
 																				format:kCFPropertyListBinaryFormat_v1_0
-																				errorDescription:&error];
-		if (error)
+																				errorDescription:&errorString];
+		if (errorString)
 		{
-			[error release];
+			[errorString autorelease];
 			[dataToSendNS release];
 			dataToSendNS = nil;
-			return OM_NoDataFromPropertyListError;
+			return [NSError errorWithDomain:@"openmeta" code:OM_NoDataFromPropertyListError userInfo:[NSDictionary dictionaryWithObject:errorString forKey:@"info"]];
 		}
 	}
 	
@@ -823,7 +840,7 @@ const double kOMMaxRating = 5.0;
 	{
 		// also reject for tags over the maximum size:
 		if ([dataToSendNS length] > kMaxDataSize)
-			return OM_MetaTooBigError;
+			return [NSError errorWithDomain:@"openmeta" code:OM_MetaTooBigError userInfo:[NSDictionary dictionaryWithObject:OM_MetaTooBigErrorString forKey:@"info"]];
 		
 		returnVal = setxattr(pathUTF8, inKeyNameC, [dataToSendNS bytes], [dataToSendNS length], 0, XATTR_NOFOLLOW);
 	}
@@ -833,13 +850,13 @@ const double kOMMaxRating = 5.0;
 	}
 	
 	// only backup kOM - open meta stuff. 
-	if ([inKeyName hasPrefix:@"kOM"] || [inKeyName hasPrefix:[self spotlightKey:@"kOM"]])
-		[OpenMetaBackup backupMetadata:[url path]]; // backup all meta data changes. 
+	if ([OpenMetaBackup attributeKeyMeansBackup:inKeyName])
+		[OpenMetaBackup backupMetadata:path]; // backup all meta data changes. 
 	
 	if (returnVal == 0)
-		return OM_NoError;
+		return nil;
 	
-	return errno;
+	return [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:[NSDictionary dictionaryWithObject:ErrnoString(errno) forKey:@"info"]];
 }
 
 //----------------------------------------------------------------------
@@ -854,18 +871,17 @@ const double kOMMaxRating = 5.0;
 //  Created by Tom Andersen on 2008/07/17 
 //
 //----------------------------------------------------------------------
-+(id)getXAttr:(NSString*)inKeyName url:(NSURL*)url errorCode:(OMError*)errorCode;
++(id)getXAttr:(NSString*)inKeyName path:(NSString*)path error:(NSError**)error;
 {
 	// we can't put restore meta here - as restoreMetadata calls us! 
 	// I put the restore on the usertags and ratings. Users will have to manually call restore for other keys 
-	//[OpenMetaBackup restoreMetadata:[url path]];
+	//[OpenMetaBackup restoreMetadata:path];
 	
-	NSString* path = [url path];
 	const char *pathUTF8 = [path fileSystemRepresentation];
 	if ([path length] == 0 || pathUTF8 == nil)
 	{
-		if (errorCode)
-			*errorCode = OM_ParamError;
+		if (error)
+			*error = [NSError errorWithDomain:@"openmeta" code:OM_ParamError userInfo:[NSDictionary dictionaryWithObject:OM_ParamErrorString forKey:@"info"]];
 		return nil;
 	}
 	
@@ -881,25 +897,25 @@ const double kOMMaxRating = 5.0;
 	}
 	else
 	{
-		if (*errorCode != ENOATTR) // it is not an error to have no attribute set 
-			*errorCode = errno; // Most common ENOATTR - the attribute is not set on the file.
+		if (errno != ENOATTR && error) // it is not an error to have no attribute set 
+			*error = [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:[NSDictionary dictionaryWithObject:ErrnoString(errno) forKey:@"info"]];
 		return nil;
 	}
 	
 	// ok, we have some data 
 	NSPropertyListFormat formatFound;
-	NSString* error;
-	id outObject = [NSPropertyListSerialization propertyListFromData:nsData mutabilityOption:kCFPropertyListImmutable format:&formatFound errorDescription:&error];
-	if (error)
+	NSString* errorString;
+	id outObject = [NSPropertyListSerialization propertyListFromData:nsData mutabilityOption:kCFPropertyListImmutable format:&formatFound errorDescription:&errorString];
+	if (errorString)
 	{
-		[error release];
-		if (errorCode)
-			*errorCode = OM_NoDataFromPropertyListError;
+		if (error)
+			*error = [NSError errorWithDomain:@"openmeta" code:OM_NoDataFromPropertyListError userInfo:[NSDictionary dictionaryWithObject:errorString forKey:@"info"]];
+		[errorString release]; // "Unlike the normal memory management rules for Cocoa, strings returned in errorString need to be released by the caller" - apple docs
 		return nil;
 	}
 	
-	if (errorCode)
-		*errorCode = OM_NoError;
+	if (error)
+		*error = nil;
 	return outObject;
 }
 

@@ -36,7 +36,20 @@
         way that tags set on a jpeg are 'in' the EXIF portion of the file when bridge does it. 
         The Open Meta tags follow the file around on the OS - through backups, copies and moves. 
         
-        This argument holds for many types of meta data. 
+		Other keys
+		----------------
+		 I used to consider it 'wrong' to be able to override kMDItem* stuff with OpenMeta, and it is for tags. Tags though are a special case,
+		 in that there could be for instance 6 keywords (relevant - ish) set on a PDF, and you want to add the open meta tag 'special' to it. You don't want to 
+		 lose the 6 keywords do you? There are also lots of images from image houses that have a lot of keyword 'noise' in them that you might not want
+		 cluttering up your tags that you have set. i have found png files with 50 keywords set. html can also be bad for this. So users want the ability to only look at tags that they have set,
+		 or a combination of keywords and tags.
+		 BUT - look at ratings - ratings are just one number - it is likely that you don't want to as a user, have to think about 2 different places ratings 
+		 could be stored, (like tags vs keywords), but would rather have just the one concept of 'rating'. It is also ok, even deisrable, to be able to override the rating
+		 on a file. So ratings _should_ use kMDItemStarRating.
+		 Also look at 'less used' keys - like camera (kMDItemAcquisitionMake and  kMDItemAcquisitionModel) - although they will be set on perhaps thousands of photos in 
+		 what if you run into a PDF that is a picture taken with a camera, and you want to tag that? openmeta will allow you to to tag it with kMDItemAcquisitionMake and kMDItemAcquisitionModel
+		 so that searches for camera make an model do not have to 'know about openmeta' to work. 
+		 Plus it's always good to keep the number of keys down.
         
        
         What about namespaces?
@@ -68,30 +81,8 @@
     <attributes>
         <attribute name="kOMUserTags" multivalued="true" type="CFString"/>
         <attribute name="kOMUserTagTime" type="CFDate"/>
-        <attribute name="kOMStarRating" type="CFNumber"/>
         <attribute name="kOMDocumentDate" type="CFDate"/>
-        <attribute name="kOMHidden" type="CFBoolean"/>
-        <attribute name="kOMLatitude" type="CFNumber"/>
-        <attribute name="kOMLongitude" type="CFNumber"/>
-        <attribute name="kOMAltitude" type="CFNumber"/>
-        <attribute name="kOMAddress" type="CFString"/>
-        <attribute name="kOMCity" type="CFString"/>
-        <attribute name="kOMStateProv" type="CFString"/>
-        <attribute name="kOMPostalCode" type="CFString"/>
-        <attribute name="kOMCountry" type="CFString"/>
         <attribute name="kOMBookmarks" multivalued="true" type="CFString"/>
-        <attribute name="kOMApproved" multivalued="true" type="CFString"/>
-        <attribute name="kOMWorkflow" multivalued="true" type="CFString"/>
-        <attribute name="kOMProjects" multivalued="true" type="CFString"/>
-        <attribute name="kOMAuthors" multivalued="true" type="CFString"/>
-        <attribute name="kOMEmailAddresses" multivalued="true" type="CFString"/>
-        <attribute name="kOMItemDueDate" type="CFDate"/>
-        
-        <attribute name="kOMInformation" type="CFString"/>
-        <attribute name="kOMDirector" type="CFString"/>
-        <attribute name="kOMProducer" type="CFString"/>
-        <attribute name="kOMGenre" type="CFString"/>
-        <attribute name="kOMPerformers" multivalued="true" type="CFString"/>
         <attribute name="kOMUserTagApplication" type="CFString"/>
    </attributes>
 
@@ -103,58 +94,17 @@
             <allattrs> 
 			kOMUserTags
 			kOMUserTagTime
-			kOMStarRating
 			kOMDocumentDate
-			kOMHidden
-			kOMLatitude
-			kOMLongitude
-			kOMAltitude
-			kOMAddress
-			kOMCity
-			kOMStateProv
-			kOMPostalCode
-			kOMCountry
 			kOMBookmarks
-			kOMApproved
-			kOMWorkflow
-			kOMProjects
-			kOMAuthors
-			kOMEmailAddresses
-			kOMItemDueDate
-			kOMInformation
-			kOMDirector
-			kOMProducer
-			kOMGenre
-			kOMPerformers
 			kOMUserTagApplication
             </allattrs>
             <!-- 'displayattrs' is a whitespace separated list of the attributes that should normally be displayed when previewing files of this UTI type. -->
             <displayattrs>
 			kOMUserTags
 			kOMUserTagTime
-			kOMStarRating
 			kOMDocumentDate
-			kOMHidden
-			kOMLatitude
-			kOMLongitude
-			kOMAltitude
-			kOMAddress
-			kOMCity
-			kOMStateProv
-			kOMPostalCode
-			kOMCountry
 			kOMBookmarks
-			kOMApproved
-			kOMWorkflow
-			kOMProjects
-			kOMAuthors
-			kOMEmailAddresses
-			kOMItemDueDate
-			kOMInformation
-			kOMDirector
-			kOMProducer
-			kOMGenre
-			kOMPerformers
+			kOMUserTagApplication
             </displayattrs>
             
         </type>

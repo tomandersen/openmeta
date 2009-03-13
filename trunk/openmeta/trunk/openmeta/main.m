@@ -83,39 +83,15 @@ static void PrintLine(NSString* line)
 }
 
 
-static void ReportIfError(OMError inError)
+static void ReportIfError(NSError* inError)
 {
 	if (!gShowErrors)
 		return;
 		
-	if (inError == OM_NoError)
+	if (inError == nil)
 		return;
 	
-	if (inError == OM_MetaDataNotChanged)
-		return;
-	
-	if (inError == OM_ParamError)
-		PrintLine(@"Open Meta parameter error");
-	if (inError == OM_NoDataFromPropertyListError)
-		PrintLine(@"The data requested or attempted to be set could not be made into a apple property list");
-	if (inError == OM_NoMDItemFoundError)
-		PrintLine(@"The path appears not to point to a valid item on disk");
-	if (inError == OM_CantSetMetadataError)
-		PrintLine(@"OpenMeta can't set the meta data");
-	if (inError == OM_WillNotSetkMDItemKey)
-		PrintLine(@"OpenMeta will not set any data with a key of kMDItem*");
-	
-	if (inError > 0)
-	{
-		if (inError == ENOATTR) // 93 == ENOATTR it is not really an error if there is no attribute found
-			return;
-		
-		// the error is an errno from the system:
-		char errorMessage[1024];
-		errorMessage[0] = 0;
-		strerror_r(inError, errorMessage, 1024);
-		PrintLine([NSString stringWithFormat:@"errno error: %d, %s", (int)inError, errorMessage]);
-	}
+	PrintLine([inError description]);
 }
 
 
@@ -174,12 +150,11 @@ static NSArray* ReadParameters(NSArray* inArgs, int* ioIndex, BOOL stripCommas)
 
 static void SetRating(NSString* inRating, NSString* inPath)
 {
-	OMError errorCode = OM_NoError;
+	NSError* error = nil;
 	if ([inRating length] == 0)
 	{
 		// if there is no rating passed, it really means to just print the rating:
-		NSURL* url = [NSURL fileURLWithPath:inPath];
-		double rating = [OpenMeta getRating:url errorCode:&errorCode];
+		double rating = [OpenMeta getRating:inPath error:&error];
 		PrintLine([NSString stringWithFormat:@"%f", rating]);
 	}
 	else
@@ -192,33 +167,29 @@ static void SetRating(NSString* inRating, NSString* inPath)
 		if (isnan(rating))
 			rating = 0.0;
 		
-		NSURL* url = [NSURL fileURLWithPath:inPath];
-		errorCode = [OpenMeta setRating:rating url:url];
+		error = [OpenMeta setRating:rating path:inPath];
 	}
-	ReportIfError(errorCode);
+	ReportIfError(error);
 }
 
 static void AddTags(NSArray* inTags, NSString* inPath)
 {
-	NSURL* url = [NSURL fileURLWithPath:inPath];
-	OMError errorCode = [OpenMeta addUserTags:inTags url:url];
-	ReportIfError(errorCode);
+	NSError* error = [OpenMeta addUserTags:inTags path:inPath];
+	ReportIfError(error);
 }
 
 static void SetTags(NSArray* inTags, NSString* inPath)
 {
-	NSURL* url = [NSURL fileURLWithPath:inPath];
-	OMError errorCode = [OpenMeta setUserTags:inTags url:url];
-	ReportIfError(errorCode);
+	NSError* error = [OpenMeta setUserTags:inTags path:inPath];
+	ReportIfError(error);
 }
 
 static NSString* TagsAsString(NSString* inPath)
 {
-	NSURL* url = [NSURL fileURLWithPath:inPath];
 	NSString* tagString = @"";
-	OMError errorCode = OM_NoError;
-	NSArray* theTags = [OpenMeta getUserTags:url errorCode:&errorCode];
-	ReportIfError(errorCode);
+	NSError* error = nil;
+	NSArray* theTags = [OpenMeta getUserTags:inPath error:&error];
+	ReportIfError(error);
 	
 	BOOL firstOne = YES;
 	for (NSString* aTag in theTags)
@@ -241,11 +212,10 @@ static NSString* TagsAsString(NSString* inPath)
 
 static void PrintSingleLine(BOOL inListRating, BOOL inListTags, NSString* inPath)
 {
-	OMError errorCode = OM_NoError;
-	NSURL* url = [NSURL fileURLWithPath:inPath];
+	NSError* error = nil;
 	double rating = 0.0;
 	if (inListRating)
-		rating = [OpenMeta getRating:url errorCode:&errorCode];
+		rating = [OpenMeta getRating:inPath error:&error];
 	
 	NSString* tagString = @"";
 	if (inListTags)
@@ -256,26 +226,25 @@ static void PrintSingleLine(BOOL inListRating, BOOL inListTags, NSString* inPath
 	else
 		PrintLine([NSString stringWithFormat:@"%@ %@", tagString, inPath]);
 	
-	ReportIfError(errorCode);
+	ReportIfError(error);
 }
 
 static void PrintInfo(NSString* inPath)
 {
-	OMError errorCode = OM_NoError;
+	NSError* error = nil;
 	PrintLine([NSString stringWithFormat:@"%@", inPath]);
-	NSURL* url = [NSURL fileURLWithPath:inPath];
 	
 	NSString* tagString = TagsAsString(inPath);
 	PrintLine([NSString stringWithFormat:@"tags: %@", tagString]);
 	
-	double rating = [OpenMeta getRating:url errorCode:&errorCode];
+	double rating = [OpenMeta getRating:inPath error:&error];
 	if (rating > 0.0)
 		PrintLine([NSString stringWithFormat:@"rating: %f", rating]);
 	else
 		PrintLine([NSString stringWithFormat:@"rating: none found"]);
 	
 	PrintLine(@"");
-	ReportIfError(errorCode);
+	ReportIfError(error);
 }
 
 

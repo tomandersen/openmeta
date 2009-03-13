@@ -65,8 +65,21 @@ OTHER DEALINGS IN THE SOFTWARE.
         way that tags set on a jpeg are 'in' the EXIF portion of the file when bridge does it. 
         The Open Meta tags follow the file around on the OS - through backups, copies and moves. 
         
-        This argument holds for many types of meta data. 
-        
+		Other keys
+		----------------
+		 I used to consider it 'wrong' to be able to override kMDItem* stuff with OpenMeta, and it is for tags. Tags though are a special case,
+		 in that there could be for instance 6 keywords (relevant - ish) set on a PDF, and you want to add the open meta tag 'special' to it. You don't want to 
+		 lose the 6 keywords do you? There are also lots of images from image houses that have a lot of keyword 'noise' in them that you might not want
+		 cluttering up your tags that you have set. i have found png files with 50 keywords set. html can also be bad for this. So users want the ability to only look at tags that they have set,
+		 or a combination of keywords and tags.
+		 BUT - look at ratings - ratings are just one number - it is likely that you don't want to as a user, have to think about 2 different places ratings 
+		 could be stored, (like tags vs keywords), but would rather have just the one concept of 'rating'. It is also ok, even deisrable, to be able to override the rating
+		 on a file. So ratings _should_ use kMDItemStarRating.
+		 Also look at 'less used' keys - like camera (kMDItemAcquisitionMake and  kMDItemAcquisitionModel) - although they will be set on perhaps thousands of photos in 
+		 what if you run into a PDF that is a picture taken with a camera, and you want to tag that? openmeta will allow you to to tag it with kMDItemAcquisitionMake and kMDItemAcquisitionModel
+		 so that searches for camera make an model do not have to 'know about openmeta' to work. 
+		 Plus it's always good to keep the number of keys down.
+      
         What about namespaces?
         ----------------------
         Open Meta is a clean simple way to set user entered searchable metadata on any file on Mac OS X. 
@@ -110,30 +123,23 @@ OTHER DEALINGS IN THE SOFTWARE.
 //
 // Projects: Projects that this file is relevant to
 
-// error codes
-typedef long OMError;
-// on success return 0
+// on success return nil error
 // If setting/getting user tags failed we return a negative error code for one of our errors, or the error code from the underlying api (setxattr)
 // If there is errno set after a call we return that. errno codes seem to be positive numbers
-#define OM_NoError (0)
+// We use NSError, and you can pass in nil if you are not interested in an error.
 #define OM_ParamError (-1)
 #define OM_NoDataFromPropertyListError (-2)
 #define OM_NoMDItemFoundError (-3)
 #define OM_CantSetMetadataError (-4)
 #define OM_MetaTooBigError (-5)
-#define OM_WillNotSetkMDItemKey (-6)
-// OM_MetaDataNotChanged is returned from addUserTags if nothing had to be done.
-#define OM_MetaDataNotChanged (-7) 
-// A very common errno error code is ENOATTR - the attribute is not set on the file. 
+// A very common errno error code is ENOATTR - the attribute is not set on the file. - which we don't consider an error
 
 extern NSString* const kOMUserTags;
-extern NSString* const kOMUserTagTime; 
+extern NSString* const kOMUserTagTime;
+extern NSString* const kOMDocumentDate;
 extern NSString* const kOMBookmarks; // list of urls - bookmarks as nsarray nsstring 
-extern NSString* const kOMApproved;
-extern NSString* const kOMWorkflow;
-extern NSString* const kOMProjects;
-extern NSString* const kOMStarRating;	// ns number - 0 to 5 (i guess floats are allowed)- (itunes apparently also stores ratings as 0 to 100?)
-extern NSString* const kOMHidden;
+extern NSString* const kOMUserTagApplication;
+
 extern const double kOMMaxRating;
 
 // kMDItemKeywords
@@ -148,13 +154,11 @@ extern const double kOMMaxRating;
 // Tags - NSStrings - conceptually utf8 - any characters allowed, spaces, commas, etc.
 // Case sensitive or not? Case preserving. Order of tags is not guaranteed.
 // setUserTags will remove duplicates from the array, using case preserving rules. 
-+(OMError)setUserTags:(NSArray*)tags url:(NSURL*)url;
-+(NSArray*)getUserTags:(NSURL*)url errorCode:(OMError*)errorCode;
-+(OMError)addUserTags:(NSArray*)tags url:(NSURL*)url; // returns OM_MetaDataNotChanged if no tags needed to be added
-+(OMError)clearUserTags:(NSArray*)tags url:(NSURL*)url;// returns OM_MetaDataNotChanged if no tags cleared
++(NSError*)setUserTags:(NSArray*)tags path:(NSString*)path;
++(NSArray*)getUserTags:(NSString*)path error:(NSError**)error;
++(NSError*)addUserTags:(NSArray*)tags path:(NSString*)path;
++(NSError*)clearUserTags:(NSArray*)tags path:(NSString*)path;
 
-
-+(NSArray*)urlsFromFilePaths:(NSArray*)inFilePaths;
 
 // To change tags on groups of files: 
 // You first obtain the common tags in a list of files, 
@@ -163,46 +167,40 @@ extern const double kOMMaxRating;
 // so that we can be sure we are not overwriting other changes made by other users, etc 
 // during the edit cycle:
 // These calls are case preserving and case insensitive. So Apple and apple will both be the 'same' tag on reading
-+(OMError)setCommonUserTags:(NSArray*)urls originalCommonTags:(NSArray*)originalTags replaceWith:(NSArray*)newTags;
-+(NSArray*)getCommonUserTags:(NSArray*)urls errorCode:(OMError*)errorCode;
++(NSError*)setCommonUserTags:(NSArray*)paths originalCommonTags:(NSArray*)originalTags replaceWith:(NSArray*)newTags;
++(NSArray*)getCommonUserTags:(NSArray*)paths error:(NSError**)error;
 
 
-// Ratings are 0 - 5 stars. If a rating on a file is not set, that is different from 0
-// so - you need to check the error returned by getRating in order to find out if the rating was really there
+// Ratings are 0 - 5 stars. Setting a rating to 0 is the same as having no rating. 
 // rating is 0 - 5 floating point, so you have plenty of room. I clamp 0 - 5 on setting it.
-// passing kRatingNotSet to setRating removes the rating. Also I return kRatingNotSet if I can't find a rating.
-+(OMError)setRating:(double)rating05 url:(NSURL*)url;
-+(double)getRating:(NSURL*)url errorCode:(OMError*)errorCode;
+// passing 0 to setRating removes the rating. Also I return 0 if I can't find a rating.
+// Users have a hard time conceptualizing the difference between having no rating set and a rating of 0
++(NSError*)setRating:(double)rating05 path:(NSString*)path;
++(double)getRating:(NSString*)path error:(NSError**)error;
 
 // simplest way to set metadata that will be picked up by spotlight:
 // The string will be stored in the spotlight datastore. Likely you will not want 
 // to set large strings with this, as it will be hard on the spotlight db.
-+(OMError)setString:(NSString*)string keyName:(NSString*)keyName url:(NSURL*)url;
-+(NSString*)getString:(NSString*)keyName url:(NSURL*)url errorCode:(OMError*)errorCode;
++(NSError*)setString:(NSString*)string keyName:(NSString*)keyName path:(NSString*)path;
++(NSString*)getString:(NSString*)keyName path:(NSString*)path error:(NSError**)error;
 
-// hide adds a key to the Database kOMHidden = "YES"
-// unhide removes the key. 
-// Hidden is meant to be applied on a file by file basis by a user. 
-// The hide will follow the user around
-// ----------------------------------
-+(OMError)hide:(NSURL*)url;
-+(OMError)unhide:(NSURL*)url;
-+(BOOL)isHidden:(NSURL*)url errorCode:(OMError*)errorCode;
 
 // If you have a 'lot' (ie 200 bytes to 4k) to set as a metadata on a file, then what you want to do
 // is use the setDictionaries call. You organize your data in an array of dictionaries, 
 // and each dict will be put into the metadata store and NOT be indexed by spotlight. 
-// In each dictionary, you set one item with the key @"name" and THAT information will be stored in the spotlight DB
+// In each dictionary, you optionally set one item with the key @"name" and THAT information will be stored in the spotlight DB
+// Say you set keyName to 'kOMLastPrintedInfo', then there would be an xattr with the name 'kOMLastPrintedInfo' that is an array of nsdictionaries
+// AND an xattr set on the file with com.apple.metadata:kOMLastPrintedInfo' which will be an array of the 'names' from the dicts. 
 // the 'name' would usually be used for search purposes. Other data can be 'anything'
 
 // arrays of dictionaries:
 // Spotlight can't have dictionaries in it's database. 
 // We can store an array of dictionaries, and in spotlight have an array of names of the
-// dictionaries. The names are assumed to be in each dictionary, with the key @"name"
+// dictionaries. The names are optional in each dictionary, with the key @"name"
 // @"name" can be a string (usually), date, or nsnumber.  
-+(OMError)setDictionaries:(NSArray*)arrayOfDicts keyName:(NSString*)keyName url:(NSURL*)url;
-+(NSArray*)getDictionaries:(NSString*)keyName url:(NSURL*)url errorCode:(OMError*)errorCode;
-+(NSArray*)getDictionariesNames:(NSString*)keyName url:(NSURL*)url errorCode:(OMError*)errorCode; // returns array of names as strings, dates, or numbers
++(NSError*)setDictionaries:(NSArray*)arrayOfDicts keyName:(NSString*)keyName path:(NSString*)path;
++(NSArray*)getDictionaries:(NSString*)keyName path:(NSString*)path error:(NSError**)error;
++(NSArray*)getDictionariesNames:(NSString*)keyName path:(NSString*)path error:(NSError**)error; // returns array of names as strings, dates, or numbers
 
 // optional keys on any dict
 //					key "date" the date of the request time set, etc.
@@ -226,23 +224,23 @@ extern const double kOMMaxRating;
 //					key "name" searchable name like "sampson" or "Orion Project" 
 
 // for meta data in arrays: The add call weeds out duplicates 
-+(NSArray*)getNSArrayMetaData:(NSString*)metaDataKey url:(NSURL*)url errorCode:(OMError*)errorCode;
-+(OMError)setNSArrayMetaData:(NSArray*)array metaDataKey:(NSString*)metaDataKey url:(NSURL*)url;
-+(OMError)addToNSArrayMetaData:(NSArray*)itemsToAdd metaDataKey:(NSString*)metaDataKey url:(NSURL*)url;
++(NSArray*)getNSArrayMetaData:(NSString*)metaDataKey path:(NSString*)path error:(NSError**)error;
++(NSError*)setNSArrayMetaData:(NSArray*)array metaDataKey:(NSString*)metaDataKey path:(NSString*)path;
++(NSError*)addToNSArrayMetaData:(NSArray*)itemsToAdd metaDataKey:(NSString*)metaDataKey path:(NSString*)path;
 
 
 // extended attributes:
 // These getters and setters are to set xattr data that will be read and indexed by spotlight
 // If you pass large amounts of data or objects like dictionaries that spotlght cannot index, results are undefined.
-// The only things that spotlight can handle (as far as I know) are small arrays and nsstrings. 
-+(id)getXAttrMetaData:(NSString*)metaDataKey url:(NSURL*)url errorCode:(OMError*)errorCode;
-+(OMError)setXAttrMetaData:(id)plistObject metaDataKey:(NSString*)metaDataKey url:(NSURL*)url;
+// The only things that spotlight can handle (as far as I know) are small arrays and nsstrings, nsdates, and nsnumbers 
++(id)getXAttrMetaData:(NSString*)metaDataKey path:(NSString*)path error:(NSError**)error;
++(NSError*)setXAttrMetaData:(id)plistObject metaDataKey:(NSString*)metaDataKey path:(NSString*)path;
 
 // These getters and setters are to set xattr data that will be NOT read and indexed by spotlight
 // The passed plist object will be converted to data as a binary plist object. (plist object is for example an nsdictionary or nsarray)
 // You can pass data up to 4k (or close to that depending on how much the data takes up in binary plist format)
-+(id)getXAttr:(NSString*)inKeyName url:(NSURL*)url errorCode:(OMError*)errorCode;
-+(OMError)setXAttr:(id)plistObject forKey:(NSString*)inKeyName url:(NSURL*)url;
++(id)getXAttr:(NSString*)inKeyName path:(NSString*)path error:(NSError**)error;
++(NSError*)setXAttr:(id)plistObject forKey:(NSString*)inKeyName path:(NSString*)path;
 
 
 // utils
@@ -253,8 +251,12 @@ extern const double kOMMaxRating;
 + (NSArray*)recentTags;		// an array of NSStrings, sorted by most recently added at the top. Case preserved.
 // this call is how you maintain the list of recent tags. When a user edits a list of tags on a doc, pass in the originals as 'old' and the entire set of changed ones as new. 
 + (void)updatePrefsNewTags:(NSArray*)oldTags newTags:(NSArray*)newTags;
-+ (void)synchRecentTagsPrefs;
++ (void)synchRecentTagsPrefs;	// you have to call this to write out the prefs - it is not automatic like the nsuserdefaults, since we are using a common 'open meta' prefs file.
 
+// this call makes sure that all the keys in the OpenMeta kOM group get seen by Spotlight, so that the associated strings.xml. strings.schema, etc can work.
++(void)registerUsualOMAttributes; // just call this on launch if you want to be sure. 
 +(void)registerOMAttributes:(NSDictionary*)typicalAttributes forAppName:(NSString*)appName;
+
++(NSString*)spotlightKey:(NSString*)inKeyName;
 
 @end

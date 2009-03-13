@@ -19,13 +19,13 @@
 +(NSData*) aliasDataForPath:(NSString*)inPath;
 +(NSString*) resolveAliasDataToPath:(NSData*)inData osErr:(OSErr*)outErr;
 +(NSString*) backupPathForMonthsBeforeNow:(int)inMonthsBeforeNow;
-+(NSString*)getAndIfNeccSetBackupStamp:(NSString*)inPath;
++(void)setBackupStamp:(NSString*)inPath;
 +(NSString*) backupPathForItem:(NSString*)inPath;
 +(void)restoreMetadataSearchForFile:(NSString*)inPath;
 +(NSString*)hashString:(NSString*)inString;
 +(NSThread*)backupThread;
 +(void)enqueueBackupItem:(NSString*)inPath;
-+(BOOL)hasBackupStamp:(NSString*)inPath;
++(BOOL)hasCorrectBackupStamp:(NSString*)inPath;
 +(NSString*)truncatedPathComponent:(NSString*)aPathComponent;
 +(void)backupMetadataNow:(NSString*)inPath;
 +(void)restoreMetadata:(NSDictionary*)buDict toFile:(NSString*)inFile;
@@ -81,7 +81,7 @@
 }
 
 //----------------------------------------------------------------------
-//	restoreMetadata
+//	restoreMetadata (public call)
 //
 //	Purpose:	if there is openmeta data of any sort set on the file, this call returns without doing anything.
 //
@@ -94,22 +94,22 @@
 //----------------------------------------------------------------------
 +(void)restoreMetadata:(NSString*)inPath;
 {
-	if ([self hasBackupStamp:inPath])
+	if ([self hasCorrectBackupStamp:inPath])
 		return;
 	
 	// if a file has no backup stamp, then either has never been tagged, or some process has stripped off the tags. At this point we can't tell which, so we search for a restore.
 	[self restoreMetadataSearchForFile:inPath];
 	
 	// the process of looking for a backup is long and slow, so we ensure that there is a backup stamp set, even if the user does not set any meta data - which is fine
-	[self getAndIfNeccSetBackupStamp:inPath];
+	[self setBackupStamp:inPath];
 }
 
 #pragma mark backup paths and stamps
 
 //----------------------------------------------------------------------
-//	backupStamp
+//	calculateBackupStamp
 //
-//	Purpose:	the backup stap for the file
+//	Purpose:	the backup stap for the file - what the stamp should be for the passed path - NOT what is stored on disk
 //
 //	Inputs:		
 //
@@ -118,7 +118,7 @@
 //  Created by Tom Andersen on 2009/01/28 
 //
 //----------------------------------------------------------------------
-+(NSString*)backupStamp:(NSString*)inPath;
++(NSString*)calculateBackupStamp:(NSString*)inPath;
 {
 	NSString* fileName = [self truncatedPathComponent:[inPath lastPathComponent]]; 
 	NSString* fileNameHash = [self hashString:[inPath lastPathComponent]]; // hash the name
@@ -131,6 +131,10 @@
 	return backupStamp;
 }	
 
++(NSString*)getBackupStamp:(NSString*)inPath;
+{
+	return [OpenMeta getXAttrMetaData:@"kBackupStampOM" path:inPath error:nil];
+}
 
 //----------------------------------------------------------------------
 //	hasBackupStamp
@@ -145,27 +149,23 @@
 //  Created by Tom Andersen on 2009/01/28 
 //
 //----------------------------------------------------------------------
-+(BOOL)hasBackupStamp:(NSString*)inPath;
++(BOOL)hasCorrectBackupStamp:(NSString*)inPath;
 {
-	NSURL* fileURL = [NSURL fileURLWithPath:inPath];
-	OMError errorCode = OM_NoError;
-	NSString* currentBackupStamp = [OpenMeta getXAttrMetaData:@"kBackupStampOM" url:fileURL errorCode:&errorCode];
-	
+	NSString* currentBackupStamp = [self getBackupStamp:inPath];
 	if (currentBackupStamp == nil)
-		return NO; // as no backup stamp  was set, it means that openmeta data islikely missing or never set for that item.
-		
+		return NO;
+	
 	// if the item was moved, renamed, etc, then the backup stamp will be wrong - we take this opportunity to fix that:
-	NSString* backupStamp = [self backupStamp:inPath];
+	NSString* backupStamp = [self calculateBackupStamp:inPath];
+	if ([backupStamp isEqualToString:currentBackupStamp])
+		return YES;
 	
-	if (![backupStamp isEqualToString:currentBackupStamp])
-		[self backupMetadata:inPath];
-	
-	return YES;
+	return NO;
 }
 
 
 //----------------------------------------------------------------------
-//	getAndIfNeccSetBackupStamp
+//	setBackupStamp
 //
 //	Purpose:	returns the backup stamp for the item. After this call, it will also be set 
 //
@@ -176,23 +176,16 @@
 //  Created by Tom Andersen on 2009/01/28 
 //
 //----------------------------------------------------------------------
-+(NSString*)getAndIfNeccSetBackupStamp:(NSString*)inPath;
++(void)setBackupStamp:(NSString*)inPath;
 {
-	NSString* backupStamp = [self backupStamp:inPath];
-	
-	NSURL* fileURL = [NSURL fileURLWithPath:inPath];
-	OMError errorCode = OM_NoError;
-	NSString* currentBackupStamp = [OpenMeta getXAttrMetaData:@"kBackupStampOM" url:fileURL errorCode:&errorCode];
-	if (currentBackupStamp && [currentBackupStamp isEqualToString:backupStamp])
-		return currentBackupStamp; // the restore must have found something to restore to.
+	if ([self hasCorrectBackupStamp:inPath])
+		return;
 	
 	// mark this file as being in the openmeta system on this machine - its backup stamp
 	// I set the backup stamp as indexible, but not to be backed up (- it is not kOM* - so no backup).
 	// I plan on making an automated, efficient backup that uses this mechanism - I can eliminate 
 	// items to backup based on the results of an MDQuery. That is the plan anyways.
-	errorCode = [OpenMeta setXAttrMetaData:backupStamp metaDataKey:@"kBackupStampOM" url:fileURL];
-
-	return backupStamp;
+	[OpenMeta setXAttrMetaData:[self calculateBackupStamp:inPath] metaDataKey:@"kBackupStampOM" path:inPath];
 }
 
 
@@ -221,11 +214,11 @@
 	NSCalendarDate* todaysDate = [NSCalendarDate calendarDate];
 	
 	int theYear = [todaysDate yearOfCommonEra];
-	int theMonth = [todaysDate monthOfYear];
+	int theMonth = [todaysDate monthOfYear]; // 1 - 12 returned
 	
 	// adjust:
 	theMonth -= inMonthsBeforeNow;
-	if (theMonth < 1)
+	while (theMonth < 1)
 	{
 		theMonth += 12;
 		theYear -= 1;
@@ -299,7 +292,7 @@
 
 	// now create the special name that allows lookup:
 	// our file names are: the filename.extension__hash.omback
-	NSString* buFileName = [self getAndIfNeccSetBackupStamp:inPath];
+	NSString* buFileName = [self calculateBackupStamp:inPath];
 	buFileName = [buFileName stringByAppendingString:@".omback"];
 	return [bupath stringByAppendingPathComponent:buFileName];
 }
@@ -317,11 +310,11 @@ BOOL gOMIsTerminating = NO;
 //  Created by Tom Andersen on 2009/01/28 
 //
 //----------------------------------------------------------------------
-+(void)restoreMetadataFromBackupFileIfNeeded:(NSString*)inPathToBUFile;
++(int)restoreMetadataFromBackupFileIfNeeded:(NSString*)inPathToBUFile;
 {
 	NSDictionary* backupContents = [NSDictionary dictionaryWithContentsOfFile:inPathToBUFile];
 	if ([backupContents count] == 0)
-		return;
+		return 0;
 	
 	// if the file at the path has a backup stamp, we are good to go.
 	NSString* filePath = [backupContents objectForKey:@"bu_path"];
@@ -330,13 +323,19 @@ BOOL gOMIsTerminating = NO;
 		OSErr theErr;
 		filePath = [self resolveAliasDataToPath:[backupContents objectForKey:@"bu_alias"] osErr:&theErr];
 		if (![[NSFileManager defaultManager] fileExistsAtPath:filePath])
-			return; // could find no file to bu to.
+			return 0; // could find no file to bu to.
 	}
 	
-	if ([self hasBackupStamp:filePath])
-		return;
+	if ([self hasCorrectBackupStamp:filePath])
+		return 0;
 		
 	[self restoreMetadata:backupContents toFile:filePath];
+	
+	[self setBackupStamp:filePath];
+#if KP_DEBUG
+	NSLog(@"meta data repaired on %@ with %@", filePath, backupContents);
+#endif
+	return 1; // one file fixed up
 }
 
 //----------------------------------------------------------------------
@@ -369,6 +368,42 @@ BOOL gOMIsTerminating = NO;
 }
 
 //----------------------------------------------------------------------
+//	tellUserRestoreFinished
+//
+//	Purpose:	will show a modal dialog when the restore is finished. 
+//
+//	Inputs:		you can override the strings in a localization file
+//
+//	Outputs:	
+//
+//  Created by Tom Andersen on 2009/03/11 
+//
+//----------------------------------------------------------------------
++(void)tellUserRestoreFinished:(NSNumber*)inNumberOfFilesRestored;
+{
+	NSString* title = NSLocalizedString(@"Open Meta Restore Done", @"");
+	
+	NSString* comments = NSLocalizedString(@"No files needed to have meta data such as tags and ratings restored.", @"");
+	if ([inNumberOfFilesRestored intValue] > 0)
+	{
+		comments = NSLocalizedString(@"%1 files had meta data such as tags and ratings restored.", @"");
+		comments = [comments stringByReplacingOccurrencesOfString:@"%1" withString:[inNumberOfFilesRestored stringValue]];
+	}
+
+// This is the only UI in the OpenMeta code. If you don't want to or can't link to UI, then define OPEN_META_NO_UI in the compiler settings. 
+#if OPEN_META_NO_UI 
+	NSLog(@" %@ \n %@ ", title, comments);
+#else
+	NSRunAlertPanel(	title,
+						comments, 
+						nil,
+						nil,
+						nil,
+						nil);
+#endif
+}
+
+//----------------------------------------------------------------------
 //	restoreAllMetadata
 //
 //	Purpose:	should be run as  a 'job' on a thread to restore metadata to every file it can find that has no metadata set. 
@@ -380,15 +415,20 @@ BOOL gOMIsTerminating = NO;
 //  Created by Tom Andersen on 2009/01/26 
 //
 //----------------------------------------------------------------------
-+(void)restoreAllMetadata:(id)arg;
++(void)restoreAllMetadata:(NSNumber*)tellUserWhenDoneNS;
 {
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+	
+	BOOL tellUserWhenDone = [tellUserWhenDoneNS boolValue];
+	
 	// go through files, opening up as needed the filePath metadata...
 	// when i find one that needs restoring, also issue a call to add it to this month's list of edits.
 	// look through the previous 12 months for data. 
 	// when i find it needs restoring, also issue a call to add it to this month's list of edits.
 	int count;
-	for (count = 0; count < 12; count++)
+	int numFilesFixed = 0;
+	int numFilesChecked = 0;
+	for (count = 0; count < 36; count++)
 	{
 		NSString* backupDir = [self backupPathForMonthsBeforeNow:count];
 		NSArray* fileNames = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:backupDir error:nil];
@@ -398,8 +438,12 @@ BOOL gOMIsTerminating = NO;
 		{
 			// our file names have: the filename.extension__pathhash.omback
 			// just plow through, restoring...
-			[self restoreMetadataFromBackupFileIfNeeded:[backupDir stringByAppendingPathComponent:aFileName]];
-			[NSThread sleepForTimeInterval:0.05]; // don't push too hard...
+			numFilesFixed += [self restoreMetadataFromBackupFileIfNeeded:[backupDir stringByAppendingPathComponent:aFileName]];
+			
+			numFilesChecked++;
+			
+			if (!tellUserWhenDone)
+				[NSThread sleepForTimeInterval:0.05]; // don't push too hard if we are running lazily (not telling the user when we are done)
 			
 			if (gOMIsTerminating)
 			{
@@ -410,6 +454,17 @@ BOOL gOMIsTerminating = NO;
 			
 		}
 	}
+
+#if KP_DEBUG
+	NSLog(@"%d files checked for restore", numFilesChecked);
+#endif
+	
+	if (tellUserWhenDone)
+	{
+		NSNumber* numFilesFixedNS = [NSNumber numberWithInt:numFilesFixed];
+		[self performSelectorOnMainThread:@selector(tellUserRestoreFinished:) withObject:numFilesFixedNS waitUntilDone:YES];
+	}
+	
 	[pool release];
 	gOMRestoreThreadBusy = NO;
 }
@@ -426,10 +481,17 @@ BOOL gOMIsTerminating = NO;
 //  Created by Tom Andersen on 2009/01/28 
 //
 //----------------------------------------------------------------------
-+(void)restoreAllMetadataOnBackgroundThread;
++(void)restoreAllMetadataOnBackgroundThread:(BOOL)tellUserWhenDone;
 {
+	if (gOMRestoreThreadBusy)
+	{
+		NSLog(@"meta data restore already running");
+		return;
+	}
+	
 	gOMRestoreThreadBusy = YES;
-	[NSThread detachNewThreadSelector:@selector(restoreAllMetadata:) toTarget:self withObject:nil];
+	NSNumber* tellUserWhenDoneNS = [NSNumber numberWithBool:tellUserWhenDone];
+	[NSThread detachNewThreadSelector:@selector(restoreAllMetadata:) toTarget:self withObject:tellUserWhenDoneNS];
 }
 
 +(BOOL)restoreThreadIsBusy;
@@ -496,18 +558,16 @@ BOOL gOMIsTerminating = NO;
 {
 	NSDictionary* omDict = [buDict objectForKey:@"omDict"];
 	
-	NSURL* fileURL = [NSURL fileURLWithPath:inFile];
-	
-	OMError errorCode = OM_NoError;
+	NSError* error = nil;
 	for (NSString* aKey in [omDict allKeys])
 	{
 		id dataItem = [omDict objectForKey:aKey];
 		if (dataItem)
 		{
 			// only set data that is not already set - the idea of a backup is only replace if missing...
-			id storedObject = [OpenMeta getXAttr:aKey url:fileURL errorCode:&errorCode];
+			id storedObject = [OpenMeta getXAttr:aKey path:inFile error:&error];
 			if (storedObject == nil)
-				errorCode = [OpenMeta setXAttr:dataItem forKey:aKey url:fileURL];
+				error = [OpenMeta setXAttr:dataItem forKey:aKey path:inFile];
 		}
 	}
 }
@@ -589,7 +649,7 @@ BOOL gOMIsTerminating = NO;
 	//			6) file is moved back to the original folder. In this case the backup will restore the tags from step 1. 
 	//	I think that the above scenario is a little far fetched...
 	//----------
-	NSString* backupStamp = [self backupStamp:inPath];
+	NSString* backupStamp = [self calculateBackupStamp:inPath];
 	NSString* exactBackupFileName = [backupStamp stringByAppendingPathExtension:@"omback"];
 	int count;
 	for (count = 0; count < 12; count++)
@@ -836,7 +896,7 @@ BOOL gOMBackupThreadBusy = NO;
 	
 	if ([gOMBackupQueue count] > 0)
 	{
-		[self performSelector:@selector(doABackup:) withObject:nil afterDelay:0.02];
+		[self performSelector:@selector(doABackup:) withObject:nil afterDelay:0.05];
 	}
 	else
 	{
@@ -844,6 +904,13 @@ BOOL gOMBackupThreadBusy = NO;
 	}
 }
 
++(BOOL)attributeKeyMeansBackup:(NSString*)attrName;
+{
+	if ([attrName hasPrefix:@"kOM"] || [attrName hasPrefix:[OpenMeta spotlightKey:@"kOM"]] || [attrName hasPrefix:[OpenMeta spotlightKey:@"kMDItem"]] )
+		return YES;
+	
+	return NO;
+}
 
 //----------------------------------------------------------------------
 //	backupMetadataNow
@@ -875,8 +942,6 @@ BOOL gOMBackupThreadBusy = NO;
 	nameBuffer = malloc(bytesNeeded);
 	listxattr([inPath fileSystemRepresentation], nameBuffer, bytesNeeded, XATTR_NOFOLLOW);
 	
-	NSURL* fileURL = [NSURL fileURLWithPath:inPath];
-	
 	// walk through the returned buffer, getting names, 
 	char* namePointer = nameBuffer;
 	ssize_t bytesLeft = bytesNeeded;
@@ -887,11 +952,12 @@ BOOL gOMBackupThreadBusy = NO;
 		namePointer += byteLength;
 		bytesLeft -= byteLength;
 		
-		if ([attrName hasPrefix:@"com.apple.metadata:kOM"] || [attrName hasPrefix:@"kOM"])
+		// backup all kOM and kMDItem stuff. This will back up apple's where froms, etc.
+		if ([self attributeKeyMeansBackup:attrName])
 		{
 			// add to dictionary:
-			OMError errorCode = OM_NoError;
-			id objectStored = [OpenMeta getXAttr:attrName url:fileURL errorCode:&errorCode];
+			NSError* error = nil;
+			id objectStored = [OpenMeta getXAttr:attrName path:inPath error:&error];
 			
 			if (objectStored)
 				[omDictionary setObject:objectStored forKey:attrName];
@@ -922,6 +988,8 @@ BOOL gOMBackupThreadBusy = NO;
 		// filename is 
 		NSString* buItemPath = [self backupPathForItem:inPath];
 		[outerDictionary writeToFile:buItemPath atomically:YES];
+		
+		[self setBackupStamp:inPath]; // set the id of the backup we just made on the actual file - not the backup file.
 	}
 	
 	if (nameBuffer)
