@@ -24,8 +24,10 @@ Fresh: http://www.ironicsoftware.com/fresh/index.html
 
 Leap 2 : http://www.ironicsoftware.com/ (in beta soon)
 
-Partial support in:
+Partial support (OpenMeta Tags searchable) in:
 
 HoudahSpot: http://www.houdah.com/houdahSpot/
+
+FileSpot: http://mac.synthesisstudios.com/mac/filespot/about
 
 EagleFiler: http://c-command.com/eaglefiler/
