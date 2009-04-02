@@ -3,7 +3,7 @@
 
 = Introduction =
 
-A list of all applications that use Open Meta.
+This is a list of applications that support the reading and/or writing of OpenMeta Tags. Applications that only search OpenMeta Tags are listed under the subsection "Partial Support".
 
 
 = Details =
@@ -22,7 +22,8 @@ Fresh: http://www.ironicsoftware.com/fresh/index.html
 
 Leap 2 : http://www.ironicsoftware.com/ (in beta soon)
 
-Partial support (OpenMeta Tags searchable) in:
+
+Partial support (OpenMeta Tags searchable):
 
 Hazel 2.2.4: http://www.noodlesoft.com/hazel.php
 
