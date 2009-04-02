@@ -23,4 +23,4 @@ Basically, Open Meta will:
 
 There are a few 'gotchas' that we found while working this all out, which is one reason why we thought it was important to not only release the idea, but also some source to implement it.
 
-Deep (see ironicsoftware.com) uses this tech.
+There are more and more applications using OpenMeta: See OpenMetaApplications.
