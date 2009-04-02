@@ -26,6 +26,8 @@ Leap 2 : http://www.ironicsoftware.com/ (in beta soon)
 
 Partial support (OpenMeta Tags searchable) in:
 
+Hazel 2.2.4: http://www.noodlesoft.com/hazel.php
+
 HoudahSpot: http://www.houdah.com/houdahSpot/
 
 FileSpot: http://mac.synthesisstudios.com/mac/filespot/about
