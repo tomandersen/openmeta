@@ -6,29 +6,30 @@
 This is a list of applications that support the reading and/or writing of OpenMeta Tags. Applications that only search OpenMeta Tags are listed under the subsection "Partial Support".
 
 
-= Details =
+= Supporting Applications =
 
-Tags: http://gravityapps.com/tags/ (effectively, although not really OpenMeta)
+*Tags*: http://gravityapps.com/tags/ _(effectively, although not really OpenMeta)_
 
-Default Folder X: http://www.stclairsoft.com/DefaultFolderX/
+*Default Folder X*: http://www.stclairsoft.com/DefaultFolderX/
 
-TagIt: http://www.ironicsoftware.com/tagit/index.html
+*TagIt*: http://www.ironicsoftware.com/tagit/index.html
 
-Deep: http://www.ironicsoftware.com/deep/index.html
+*Deep*: http://www.ironicsoftware.com/deep/index.html
 
-Tag Folders: http://tagfolders.vndv.com/
+*Tag Folders*: http://tagfolders.vndv.com/
 
-Fresh: http://www.ironicsoftware.com/fresh/index.html
+*Fresh*: http://www.ironicsoftware.com/fresh/index.html
 
-Leap 2 : http://www.ironicsoftware.com/ (in beta soon)
+*Leap 2* : http://www.ironicsoftware.com/ _(in beta soon)_
 
 
-Partial support (OpenMeta Tags searchable):
+<br>
+*Partial support*:
 
-Hazel 2.2.4: http://www.noodlesoft.com/hazel.php
+*Hazel 2.2.4*: http://www.noodlesoft.com/hazel.php
 
-HoudahSpot: http://www.houdah.com/houdahSpot/
+*HoudahSpot*: http://www.houdah.com/houdahSpot/
 
-FileSpot: http://mac.synthesisstudios.com/mac/filespot/about
+*FileSpot*: http://mac.synthesisstudios.com/mac/filespot/about
 
-EagleFiler: http://c-command.com/eaglefiler/
+*EagleFiler*: http://c-command.com/eaglefiler/
