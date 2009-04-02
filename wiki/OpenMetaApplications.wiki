@@ -8,8 +8,6 @@ A list of all applications that use Open Meta.
 
 = Details =
 
-Here's what I've got so far:
-
 Tags: http://gravityapps.com/tags/ (effectively, although not really OpenMeta)
 
 Default Folder X: http://www.stclairsoft.com/DefaultFolderX/
