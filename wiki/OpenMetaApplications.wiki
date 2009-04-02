@@ -1,0 +1,31 @@
+#summary One-sentence summary of this page.
+#labels Featured,Phase-Support
+
+= Introduction =
+
+A list of all applications that use Open Meta.
+
+
+= Details =
+
+Here's what I've got so far:
+
+Tags: http://gravityapps.com/tags/ (effectively, although not really OpenMeta)
+
+Default Folder X: http://www.stclairsoft.com/DefaultFolderX/
+
+TagIt: http://www.ironicsoftware.com/tagit/index.html
+
+Deep: http://www.ironicsoftware.com/deep/index.html
+
+Tag Folders: http://tagfolders.vndv.com/
+
+Fresh: http://www.ironicsoftware.com/fresh/index.html
+
+Leap 2 : http://www.ironicsoftware.com/ (in beta soon)
+
+Partial support in:
+
+HoudahSpot: http://www.houdah.com/houdahSpot/
+
+EagleFiler: http://c-command.com/eaglefiler/
