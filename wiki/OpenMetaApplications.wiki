@@ -33,3 +33,5 @@ This is a list of applications that support the reading and/or writing of OpenMe
 *FileSpot*: http://mac.synthesisstudios.com/mac/filespot/about
 
 *EagleFiler*: http://c-command.com/eaglefiler/
+
+*BibDesk*: http://bibdesk.sourceforge.net/
