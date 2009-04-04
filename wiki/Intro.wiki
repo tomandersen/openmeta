@@ -1,9 +1,9 @@
-#summary Open Meta - set and retrieve tags and other meta data in OS X.
+#summary OpenMeta - set and retrieve tags and other meta data in OS X.
 #labels Featured,Phase-Implementation
 
 = Introduction =
 
-Open Meta uses setxattr(), getxattr() in a consistent manner to set and retrieve tags, ratings, and other metadata.
+OpenMeta uses setxattr(), getxattr() in a consistent manner to set and retrieve tags, ratings, and other metadata.
 
 
 = Details =
@@ -11,7 +11,7 @@ Open Meta uses setxattr(), getxattr() in a consistent manner to set and retrieve
 Please feel free to download and evaluate the source - which I should have up in Dec 2008:
   * Initially, all changes will go through me (tom), but if it gets busy I would not mind any help!
 
-Basically, Open Meta will: 
+Basically, OpenMeta will: 
 
 1) Allow programs to set/retrieve tags, ratings, etc on files using a simple API. This api will enforce a few 'rules' about tags - (eg no duplicates, case insensitive, case preserving, etc). Rules are generally 'good' - they allow for consistent user experiences.
 
