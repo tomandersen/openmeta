@@ -20,7 +20,9 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 *Fresh*: http://www.ironicsoftware.com/fresh/index.html
 
-*Leap 2* : http://www.ironicsoftware.com/ _(in beta soon)_
+*Leap 2*: http://www.ironicsoftware.com/Leap
+
+*Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
 
 <br>
