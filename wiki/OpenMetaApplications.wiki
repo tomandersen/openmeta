@@ -24,6 +24,8 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 *Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
+*Tagger*:http://hasseg.org/tagger/
+
 
 <br>
 *Partial support*:
