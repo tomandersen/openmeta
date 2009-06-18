@@ -8,24 +8,25 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 = Supporting Applications =
 
-*Tags*: http://gravityapps.com/tags/ _(effectively, although not really OpenMeta)_
-
-*Default Folder X*: http://www.stclairsoft.com/DefaultFolderX/
-
 *TagIt*: http://www.ironicsoftware.com/tagit/index.html
 
 *Deep*: http://www.ironicsoftware.com/deep/index.html
 
-*Tag Folders*: http://tagfolders.vndv.com/
+*Leap 2*: http://www.ironicsoftware.com/Leap
 
 *Fresh*: http://www.ironicsoftware.com/fresh/index.html
 
-*Leap 2*: http://www.ironicsoftware.com/Leap
+*Tags*: http://gravityapps.com/tags/ _(effectively, although not really OpenMeta)_
+
+*Default Folder X*: http://www.stclairsoft.com/DefaultFolderX/
+
+*Tag Folders*: http://tagfolders.vndv.com/
 
 *Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
-*Tagger*:http://hasseg.org/tagger/
+*Tagger*: http://hasseg.org/tagger/
 
+*Punakea*: http://www.nudgenudge.eu/punakea
 
 <br>
 *Partial support*:
