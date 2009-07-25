@@ -40,7 +40,7 @@ _(OMTags are written on export)_
 _*Partial support*:_
 
 *Noodlesoft:*<br>
-*Hazel 2.2.4*: http://www.noodlesoft.com/hazel.php
+*Hazel*: http://www.noodlesoft.com/hazel.php
 
 *Houdah Software:*<br>
 *HoudahSpot*: http://www.houdah.com/houdahSpot/
