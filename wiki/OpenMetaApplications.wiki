@@ -16,25 +16,25 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 *Fresh*: http://www.ironicsoftware.com/fresh/index.html
 
-*Gravity Applications:*
+*Gravity Applications:*<br>
 *Tags*: http://gravityapps.com/tags/ _(effectively, although not really OpenMeta)_
 
-*St.Clair Software:*
+*St.Clair Software:*<br>
 *Default Folder X*: http://www.stclairsoft.com/DefaultFolderX/
 
-*Jon Stovell:*
+*Jon Stovell:*<br>
 *Tag Folders*: http://tagfolders.vndv.com/
 
-*Onflapp:*
+*Onflapp:*<br>
 *Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
-*Ali Rantakari:*
+*Ali Rantakari:*<br>
 *Tagger*: http://hasseg.org/tagger/
 
-*Nudge Nudge:*
+*Nudge Nudge:*<br>
 *Punakea*: http://www.nudgenudge.eu/punakea
 
-*MOApp:*
+*MOApp:*<br>
 *myDocuments*: http://myownapp.com/site/moapp3.0/applications_leo/tools/myDocuments/myDocuments.html
 
 *myTexts*: http://myownapp.com/site/moapp3.0/applications_leo/writing/mytexts/mytexts.html
@@ -43,17 +43,17 @@ _(OMTags are written on export)_
 <br>
 _*Partial support*:_
 
-*Noodlesoft:*
+*Noodlesoft:*<br>
 *Hazel 2.2.4*: http://www.noodlesoft.com/hazel.php
 
-*Houdah Software:*
+*Houdah Software:*<br>
 *HoudahSpot*: http://www.houdah.com/houdahSpot/
 
-*Synthesis Studios:*
+*Synthesis Studios:*<br>
 *FileSpot*: http://mac.synthesisstudios.com/mac/filespot/about
 
-*C-Command:*
+*C-Command:*<br>
 *EagleFiler*: http://c-command.com/eaglefiler/
 
-*BibDesk:*
+*BibDesk:*<br>
 *BibDesk*: http://bibdesk.sourceforge.net/
