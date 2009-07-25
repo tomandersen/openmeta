@@ -32,7 +32,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 *Punakea*: http://www.nudgenudge.eu/punakea
 
 *MOApp:*<br>
-*myDocuments*: http://myownapp.com/site/moapp3.0/applications_leo/tools/myDocuments/myDocuments.html
+*myDocuments*: http://myownapp.com/site/moapp3.0/applications_leo/tools/myDocuments/myDocuments.html<br>
 *myTexts*: http://myownapp.com/site/moapp3.0/applications_leo/writing/mytexts/mytexts.html
 _(OMTags are written on export)_
 
