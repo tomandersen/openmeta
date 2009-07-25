@@ -7,7 +7,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 
 = Supporting Applications =
-
+*Ironic Software:*
 *TagIt*: http://www.ironicsoftware.com/tagit/index.html
 
 *Deep*: http://www.ironicsoftware.com/deep/index.html
@@ -16,31 +16,44 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 *Fresh*: http://www.ironicsoftware.com/fresh/index.html
 
+*Gravity Applications:*
 *Tags*: http://gravityapps.com/tags/ _(effectively, although not really OpenMeta)_
 
+*St.Clair Software:*
 *Default Folder X*: http://www.stclairsoft.com/DefaultFolderX/
 
+*Jon Stovell:*
 *Tag Folders*: http://tagfolders.vndv.com/
 
+*Onflapp:*
 *Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
+*Ali Rantakari:*
 *Tagger*: http://hasseg.org/tagger/
 
+*Nudge Nudge:*
 *Punakea*: http://www.nudgenudge.eu/punakea
 
+*MOApp:*
 *myDocuments*: http://myownapp.com/site/moapp3.0/applications_leo/tools/myDocuments/myDocuments.html
 
 *myTexts*: http://myownapp.com/site/moapp3.0/applications_leo/writing/mytexts/mytexts.html
+_(OMTags are written on export)_
 
 <br>
-*Partial support*:
+_*Partial support*:_
 
+*Noodlesoft:*
 *Hazel 2.2.4*: http://www.noodlesoft.com/hazel.php
 
+*Houdah Software:*
 *HoudahSpot*: http://www.houdah.com/houdahSpot/
 
+*Synthesis Studios:*
 *FileSpot*: http://mac.synthesisstudios.com/mac/filespot/about
 
+*C-Command:*
 *EagleFiler*: http://c-command.com/eaglefiler/
 
+*BibDesk:*
 *BibDesk*: http://bibdesk.sourceforge.net/
