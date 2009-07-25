@@ -30,6 +30,8 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 *myDocuments*: http://myownapp.com/site/moapp3.0/applications_leo/tools/myDocuments/myDocuments.html
 
+*myTexts*: http://myownapp.com/site/moapp3.0/applications_leo/writing/mytexts/mytexts.html
+
 <br>
 *Partial support*:
 
