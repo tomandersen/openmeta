@@ -8,10 +8,10 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 = Supporting Applications =
 *Ironic Software:*<br>
-*TagIt*: http://www.ironicsoftware.com/tagit/index.html
-*Deep*: http://www.ironicsoftware.com/deep/index.html
-*Leap 2*: http://www.ironicsoftware.com/Leap
-*Fresh*: http://www.ironicsoftware.com/fresh/index.html
+*TagIt*: http://www.ironicsoftware.com/tagit/index.html<br>
+*Deep*: http://www.ironicsoftware.com/deep/index.html<br>
+*Leap 2*: http://www.ironicsoftware.com/Leap<br>
+*Fresh*: http://www.ironicsoftware.com/fresh/index.html<br>
 
 *Gravity Applications:*<br>
 *Tags*: http://gravityapps.com/tags/ _(effectively, although not really OpenMeta)_
