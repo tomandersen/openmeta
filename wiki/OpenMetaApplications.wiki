@@ -22,6 +22,9 @@ This is a list of applications that support the reading and/or writing of OpenMe
 *Jon Stovell:*<br>
 *Tag Folders*: http://tagfolders.vndv.com/
 
+*Indev Software:*<br>
+MailTags Beta*: http://indev.ca/MailTagsOpenBeta.html
+
 *Onflapp:*<br>
 *Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
