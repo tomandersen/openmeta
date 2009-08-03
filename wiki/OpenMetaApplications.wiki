@@ -7,6 +7,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 
 = Supporting Applications =
+
 *Ironic Software:*<br>
 *TagIt*: http://www.ironicsoftware.com/tagit/index.html<br>
 *Deep*: http://www.ironicsoftware.com/deep/index.html<br>
@@ -18,6 +19,9 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 *St.Clair Software:*<br>
 *Default Folder X*: http://www.stclairsoft.com/DefaultFolderX/
+
+*C-Command:*<br>
+*EagleFiler*: http://c-command.com/eaglefiler/
 
 *Jon Stovell:*<br>
 *Tag Folders*: http://tagfolders.vndv.com/
@@ -50,9 +54,6 @@ _*Partial support*:_
 
 *Synthesis Studios:*<br>
 *FileSpot*: http://mac.synthesisstudios.com/mac/filespot/about
-
-*C-Command:*<br>
-*EagleFiler*: http://c-command.com/eaglefiler/
 
 *BibDesk:*<br>
 *BibDesk*: http://bibdesk.sourceforge.net/
