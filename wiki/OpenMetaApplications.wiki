@@ -16,7 +16,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 *Fresh*: http://www.ironicsoftware.com/fresh/index.html<br>
 
 *Gravity Applications:*<br>
-*Tags*: http://gravityapps.com/tags/ _(effectively, although not really OpenMeta)_
+*Tags*: http://gravityapps.com/tags/
 
 *St.Clair Software:*<br>
 *Default Folder X*: http://www.stclairsoft.com/DefaultFolderX/
