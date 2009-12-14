@@ -44,7 +44,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 *myTexts*: http://myownapp.com/site/moapp3.0/applications_leo/writing/mytexts/mytexts.html
 _(OMTags are written on export)_
 
-*Markus Guhe*
+*Markus Guhe*<br>
 *SlipBox:* http://markusguhe.net/slipbox/
 <br>
 _*Partial support*:_
