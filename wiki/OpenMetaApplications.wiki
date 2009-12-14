@@ -34,7 +34,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 *Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
 *Ali Rantakari:*<br>
-*Tagger*: http://hasseg.org/tagger/
+*Tagger*: http://hasseg.org/tagger/<br>
 *TagLists*: http://hasseg.org/tagLists/
 
 *Nudge Nudge:*<br>
