@@ -35,6 +35,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 
 *Ali Rantakari:*<br>
 *Tagger*: http://hasseg.org/tagger/
+*TagLists*: http://hasseg.org/tagLists/
 
 *Nudge Nudge:*<br>
 *Punakea*: http://www.nudgenudge.eu/punakea
