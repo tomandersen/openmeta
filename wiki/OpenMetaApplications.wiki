@@ -11,7 +11,7 @@ This is a list of applications that support the reading and/or writing of OpenMe
 *Ironic Software:*<br>
 *TagIt*: http://www.ironicsoftware.com/tagit/index.html<br>
 *Deep*: http://www.ironicsoftware.com/deep/index.html<br>
-*Leap 2*: http://www.ironicsoftware.com/Leap<br>
+*Leap 2*: http://www.ironicsoftware.com/Leap/index.html<br>
 *Yep 2*: http://www.ironicsoftware.com/yep/index.html
 *Fresh*: http://www.ironicsoftware.com/fresh/index.html<br>
 
