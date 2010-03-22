@@ -59,7 +59,7 @@ _*Partial support*:_
 *HoudahSpot*: http://www.houdah.com/houdahSpot/
 
 *Synthesis Studios:*<br>
-*FileSpot*: http://mac.synthesisstudios.com/mac/filespot/about
+<strike>*FileSpot*: http://mac.synthesisstudios.com/mac/filespot/about</strike>
 
 *BibDesk:*<br>
 *BibDesk*: http://bibdesk.sourceforge.net/
