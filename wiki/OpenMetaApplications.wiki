@@ -67,8 +67,12 @@ _(OMTags are written on export)_
 <br>
 _*Partial support*:_
 
-*Noodlesoft:*<br>
-*Hazel*: http://www.noodlesoft.com/hazel.php
-
 *BibDesk:*<br>
 *BibDesk*: http://bibdesk.sourceforge.net/
+
+*DropBox:*<br>
+*DropBox:* https://www.dropbox.com/<br>
+_ Syncs OpenMeta Tags_
+
+*Noodlesoft:*<br>
+*Hazel*: http://www.noodlesoft.com/hazel.php
