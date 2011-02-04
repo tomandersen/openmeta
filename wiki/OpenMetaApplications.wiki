@@ -3,7 +3,7 @@
 
 = Introduction =
 
-This is a list of applications that support the reading and/or writing of OpenMeta Tags. Applications that only search OpenMeta Tags are listed under the subsection "Partial Support".
+This is a list of applications that support the reading and/or writing of OpenMeta Tags. Applications that only search OpenMeta Tags are listed under the subsection "Partial Support". (Also, the owners/maintainers of this page have no responsibility for the quality and/or effectiveness of any of the applications presented. YMMV.)
 
 
 = Supporting Applications =
@@ -69,9 +69,6 @@ _*Partial support*:_
 
 *Noodlesoft:*<br>
 *Hazel*: http://www.noodlesoft.com/hazel.php
-
-*Synthesis Studios:*<br>
-<strike>*FileSpot*: mac.synthesisstudios.com/mac/filespot/about</strike>
 
 *BibDesk:*<br>
 *BibDesk*: http://bibdesk.sourceforge.net/
