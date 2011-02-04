@@ -48,6 +48,9 @@ _(OMTags are written on export)_
 *Onflapp:*<br>
 *Tagoman*: http://onflapp.wordpress.com/tagoman/ 
 
+*Pointworks:*<br>
+*PrimeFiles:* http://www.pointworks.de/software/primefiles/
+
 *Reinvented Software:*<br>
 *Together*: http://reinventedsoftware.com/together/
 
