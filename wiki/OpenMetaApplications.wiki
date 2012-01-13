@@ -62,6 +62,10 @@ _(OMTags are written on export)_
 
 *SweetP Productions:*<br>
 *Meta:* http://sweetpproductions.com/
+
+*West-Forest-Systems:*<br>
+*NeoFinder:* http://www.cdfinder.de/en/en/versions.html<br>
+_(Previously named CDFinder)_
 <br>
 <br>
 <br>
