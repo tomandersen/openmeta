@@ -79,4 +79,11 @@ _*Partial support*:_
 _ Syncs OpenMeta Tags_
 
 *Noodlesoft:*<br>
-*Hazel*: http://www.noodlesoft.com/hazel.php
+*Hazel*: http://www.noodlesoft.com/hazel.php*
+
+
+Cocoatech:*<br>
+*PathFinder*: http://cocoatech.com/pathfinder/
+
+Doo.com (Mac):*<br>
+*Doo*: https://doo.net/en/index.html
