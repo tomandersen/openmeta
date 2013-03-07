@@ -66,6 +66,12 @@ _(OMTags are written on export)_
 *West-Forest-Systems:*<br>
 *NeoFinder:* http://www.cdfinder.de/en/en/versions.html<br>
 _(Previously named CDFinder)_
+
+*Cocoatech:*<br>
+*PathFinder*: http://cocoatech.com/pathfinder/
+
+*Doo.com (Mac):*<br>
+*Doo*: https://doo.net/en/index.html
 <br>
 <br>
 <br>
@@ -80,10 +86,3 @@ _ Syncs OpenMeta Tags_
 
 *Noodlesoft:*<br>
 *Hazel*: http://www.noodlesoft.com/hazel.php*
-
-
-Cocoatech:*<br>
-*PathFinder*: http://cocoatech.com/pathfinder/
-
-Doo.com (Mac):*<br>
-*Doo*: https://doo.net/en/index.html
