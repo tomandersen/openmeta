@@ -60,7 +60,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import "OpenMeta.h"
-#import "OpenMetaBackup.h"
 #import "OpenMetaPrefs.h"
 
 BOOL gShowErrors = YES;
@@ -381,7 +380,6 @@ int main (int argc, const char * argv[])
 	[OpenMetaPrefs synchPrefs];
 	
 	// we need to sleep while the backup thread does its job...
-	[OpenMetaBackup appIsTerminating];
 	
     [pool drain];
     return 0;
