@@ -34,21 +34,30 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include <sys/time.h>
 #include <sys/stat.h>
 #import "OpenMeta.h"
-#import "OpenMetaBackup.h"
 #import "OpenMetaAuthenticate.h" // authentication is optional. so any calls need to check with respondsToSelector
 
 // OPEN_META_NO_UI 
 // There is some UI in the OpenMeta code. If you don't want to or can't link to UI, then define OPEN_META_NO_UI in the compiler settings. 
 // ie:  in the target info in XCode set : "Preprocessor Macros Not Used In Precompiled Headers" to  OPEN_META_NO_UI=1
 
+// We try and set tags that will work back to 10.7 or even earlier.
+// On 10.7 and 10.8 we set tags using only setxattr() and let spotlight import. We set an xattr com.apple.metadata:_kMDItemUserTags only on these older systems.
+// On 10.9 we set the older 10.7 and 10.8 kMDItemOMUserTags using setxattr(), while using official Apple API to set the mavericks tags.
 
 const long kMaxDataSize = 4096; // Limit maximum data that can be stored, 
 
+NSString* const kMDItemUserTags = @"kMDItemUserTags";    // xattrs are stored with _
 NSString* const kMDItemOMUserTags = @"kMDItemOMUserTags";
 NSString* const kMDItemOMUserTagTime = @"kMDItemOMUserTagTime";
 NSString* const kMDItemOMDocumentDate = @"kMDItemOMDocumentDate";
 NSString* const kMDItemOMBookmarks = @"kMDItemOMBookmarks";
-NSString* const kMDItemOMUserTagApplication = @"kMDItemOMUserTagApplication";
+NSString* const kMDItemOMRatingTime = @"kMDItemOMRatingTime";
+
+extern NSString* const NSURLTagNamesKey; // allows this code to be called on 10.7, etc. NSURLTagNamesKey will be nil on older systems
+#ifdef AVAILABLE_MAC_OS_X_VERSION_10_9_AND_LATER
+#else
+NSString* const NSURLTagNamesKey = nil;
+#endif
 
 const double kMDItemOMMaxRating = 5.0;
 
@@ -58,6 +67,7 @@ NSString* const OM_NoDataFromPropertyListErrorString = @"The data requested or a
 NSString* const OM_NoMDItemFoundErrorString = @"The path appears not to point to a valid item on disk";
 NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as binary plist must be less than (perhaps 4k?) some number of bytes";
 
+BOOL gAllowOpenMetaAuthenticationDialogs = YES;
 
 @interface OpenMeta (Private)
 +(BOOL)validateAsArrayOfStrings:(NSArray*)array;
@@ -66,6 +76,71 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 @end
 
 @implementation OpenMeta
+
++(BOOL)MavericksOrLater;
+{
+    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_8)
+        return NO;
+    else
+        return YES;
+}
+
++(NSString*)tagsToSearchFor;
+{
+    if ([self MavericksOrLater])
+        return kMDItemUserTags;
+    
+    return kMDItemOMUserTags;
+}
+
++(NSArray*)getAppleTags:(NSString*)path error:(NSError**)error;
+{
+    if (NSURLTagNamesKey)
+    {
+        NSArray *resourceTags = nil;
+        NSURL* pathURL = [NSURL fileURLWithPath:path];
+        BOOL success = [pathURL getResourceValue:&resourceTags forKey:NSURLTagNamesKey error:error];
+        if (success) {
+            return resourceTags;
+        } else {
+            //NSLog(@"Error reading tags for %@:%@", self, *error); // these errors are by and large permission errors, which we ignore
+            return nil;
+        }
+    }
+    else
+    {
+        // this code is run on 10.7 & 10.8.
+        return [self getNSArrayMetaData:kMDItemOMUserTags path:path error:error];
+        
+        // in order to use _kMDItemUserTags we would need to read the xattrs (which are an array)
+        // and parse apple's format, (which seems to be tagString\n5 ) but this is undocumented behavoir.
+        //return [self getNSArrayMetaData:kMDItemOSXAttrTags path:path error:error];
+    }
+}
+
++(NSError*)setAppleTags:(NSArray*)tags path:(NSString*)path;
+{
+    NSError* outError = nil;
+    if (NSURLTagNamesKey)
+    {
+        NSURL* pathURL = [NSURL fileURLWithPath:path];
+        BOOL success = [pathURL setResourceValue:tags forKey:NSURLTagNamesKey error:&outError];
+        if (!success) {
+            //NSLog(@"Error setting tags for %@:%@", self, outError); // these errors are by and large permission errors, which we ignore
+        }
+    }
+    else
+    {
+        // this code is run on 10.7 & 10.8.
+        // in order to use _kMDItemUserTags we would need to read the xattrs (which are an array)
+        // and parse apple's format, (which seems to be tagString\n5 ) but this is undocumented behavoir.
+        //return [self setNSArrayMetaData:kMDItemOSXAttrTags path:path error:error];
+        outError = [self setNSArrayMetaData:tags metaDataKey:kMDItemOMUserTags path:path];
+    }
+    return outError;
+}
+
+
 
 //----------------------------------------------------------------------
 //	setUserTags
@@ -84,21 +159,20 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 //----------------------------------------------------------------------
 +(NSError*)setUserTags:(NSArray*)tags path:(NSString*)path;
 {
-	if (![self validateAsArrayOfStrings:tags])
-		return [NSError errorWithDomain:@"openmeta" code:OM_ParamError userInfo:[NSDictionary dictionaryWithObject:OM_ParamErrorString forKey:@"info"]];
+    return [self setUserTags:tags path:path atDate:[NSDate date]];
+}
++(NSError*)setUserTags:(NSArray*)tags path:(NSString*)path atDate:(NSDate*)date;
+{
+	if (![OpenMeta validateAsArrayOfStrings:tags])
+		return [NSError errorWithDomain:@"openmeta" code:OM_ParamError userInfo:[NSDictionary dictionaryWithObject:@"Open Meta SYNC parameter error" forKey:@"info"]];
 	
-	tags = [self removeDuplicateTags:tags]; // also converts to utf8 decomposed format
+	tags = [OpenMeta removeDuplicateTags:tags]; // also converts to utf8 decomposed format
 	
-	[self setXAttrMetaData:[NSDate date] metaDataKey:kMDItemOMUserTagTime path:path];
-
-	// backward compatibility kOM
-	// for backward compatibility with older openmeta, also set the user tags under kOMUserTags.
-	// the problem with the old name is that they erased by many common file operations in 10.6. 
-	// the new prefix, kMDItemOM* will get preserved 
-	[self setXAttr:tags forKey:[self spotlightKey:@"kOMUserTags"] path:path];
-	[self setXAttr:tags forKey:[self openmetaKey:@"kOMUserTags"] path:path];
-
-	return [self setNSArrayMetaData:tags metaDataKey:kMDItemOMUserTags path:path]; 
+	[OpenMeta setXAttrMetaData:date metaDataKey:kMDItemOMUserTagTime path:path];
+    if ([self MavericksOrLater])
+        [OpenMeta setAppleTags:tags path:path];
+    
+	return [OpenMeta setNSArrayMetaData:tags metaDataKey:kMDItemOMUserTags path:path];
 }
 
 //----------------------------------------------------------------------
@@ -120,7 +194,7 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 
 	// we need to be careful to be case insensitive case preserving here:
 	NSError* error = nil;
-	NSArray* originalTags = [self getNSArrayMetaData:kMDItemOMUserTags path:path error:&error];
+	NSArray* originalTags = [OpenMeta getUserTags:path error:&error];
 	if (error)
 		return error;
 		
@@ -169,7 +243,7 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 
 	// we need to be careful to be case insensitive case preserving here:
 	NSError* error = nil;
-	NSArray* originalTags = [self getNSArrayMetaData:kMDItemOMUserTags path:path error:&error];
+	NSArray* originalTags = [OpenMeta getUserTags:path error:&error];
 	if (error)
 		return error;
 	
@@ -200,19 +274,41 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 //----------------------------------------------------------------------
 +(NSArray*)getUserTags:(NSString*)path error:(NSError**)error;
 {
-	// if there are tags set by both old and new api, then this uses dates to figure out which to use. 
-	[OpenMetaBackup copyTagsFromOldKeyTokMDItemOMIfNeeded:path];
-	
-	// I put restore meta here - as restoreMetadata calls us! 
-	// I put the restore on the usertags and ratings. Users will have to manually call restore for other keys 
-	[OpenMetaBackup restoreMetadata:path];
-	return [self getNSArrayMetaData:kMDItemOMUserTags path:path error:error];
+    // on mavericks, we straighten up tags from older systems, also there could be older apps out there using us.
+    if ([self MavericksOrLater])
+    {
+        // This call will straighten up all tags on the system.
+        // Get both the new format and old format tags.
+        NSArray* theTags = [self getAppleTags:path error:error];
+        NSArray* oldTags = [self getNSArrayMetaData:kMDItemOMUserTags path:path error:error];
+        if ([theTags count] == 0 && [oldTags count] == 0)
+            return nil;
+        
+        if ([theTags isEqualToArray:oldTags])
+            return theTags;
+        
+        // if they are different, then we set tags as well.
+        NSMutableArray* newArray = [NSMutableArray arrayWithArray:theTags];
+        [newArray addObjectsFromArray:oldTags];
+        NSArray* cleanedTags = [self removeDuplicateTags:newArray];
+        if (![theTags isEqualToArray:cleanedTags])
+        {
+            [self setAppleTags:cleanedTags path:path];
+        }
+        if (![oldTags isEqualToArray:cleanedTags])
+        {
+            [OpenMeta setNSArrayMetaData:cleanedTags metaDataKey:kMDItemOMUserTags path:path];
+        }
+    
+        return cleanedTags;
+    }
+    else
+    {
+        // 10.8 and below
+        return [self getNSArrayMetaData:kMDItemOMUserTags path:path error:error];
+    }
 }
 
-+(NSArray*)getUserTagsNoRestore:(NSString*)path error:(NSError**)error;
-{
-	return [self getNSArrayMetaData:kMDItemOMUserTags path:path error:error];
-}
 
 
 //----------------------------------------------------------------------
@@ -236,13 +332,13 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 		rating05 = kMDItemOMMaxRating;
 		
 	NSNumber* ratingNS = [NSNumber numberWithDouble:rating05];
+	[self setXAttrMetaData:[NSDate date] metaDataKey:kMDItemOMRatingTime path:path];
 	return [self setXAttrMetaData:ratingNS metaDataKey:(NSString*)kMDItemStarRating path:path];
 }
 
 +(double)getRating:(NSString*)path error:(NSError**)error;
 {
 	// ratings and tags are the only 'auto - restored' items 
-	[OpenMetaBackup restoreMetadata:path];
 	NSNumber* theNumber = [self getXAttrMetaData:(NSString*)kMDItemStarRating path:path error:error];
 	return [theNumber doubleValue];
 }
@@ -292,20 +388,6 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 	if ([paths count] == 1)
 		return [self getUserTags:[paths lastObject] error:error];
 	
-	
-	// make sure that any tags that are set with the old api get copied into the new fold:
-	for (NSString* aPath in paths)
-		[OpenMetaBackup copyTagsFromOldKeyTokMDItemOMIfNeeded:aPath];
-	
-	
-	// restore metadata to all files:
-	// by doing it now, at 'get' time, we are basically reading a static db of backup files.
-	// if we are lazy and wait, then sometimes we will win, because the user will not set any files, 
-	// but often we will lose bad, as when the user does set a tag, the backup dir will rapidly change, which results in much reloading 
-	// of cached backup folder contents.
-	for (NSString* aPath in paths)
-		[OpenMetaBackup restoreMetadata:aPath];
-	
 	NSMutableDictionary* theCommonTags = [NSMutableDictionary dictionary];
 	
 	NSArray* firstSetOfTags = nil;
@@ -313,7 +395,7 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 	{
 		// go through each document, extracting tags. 
 		NSError* theError = nil;
-		NSArray* tags = [self getUserTagsNoRestore:aPath error:&theError];
+		NSArray* tags = [self getUserTags:aPath error:&theError];
 		if ([tags count] == 0 || theError != nil)
 		{
 			if (error)
@@ -381,9 +463,7 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 	for (NSString* aPath in paths)
 	{
 		// get the tags currently on the document
-		// Note that since we just finished getting the tags, we don't need to bother doing a restore for each document. 
-		// it is especially slow to call restore here for a lot of docs, as for each doc the backup dir will change, which will mean an expensive reload.
-		NSArray* tags = [self getUserTagsNoRestore:aPath error:&error];
+		NSArray* tags = [self getUserTags:aPath error:&error];
 		if (![replaceWith isEqualToArray:tags])
 		{
 			NSMutableDictionary* currentTags = [NSMutableDictionary dictionary];
@@ -504,10 +584,6 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 	// its own method to call setxattr() directly, the mirrored tags will be old and wrong.
 	// what to do?
 }
-+(id)getXAttrMetaDataNoSpotlightMirror:(NSString*)omKey path:(NSString*)path error:(NSError**)error;
-{
-	return [self getXAttr:[self openmetaKey:omKey] path:path error:error];
-}
 
 //----------------------------------------------------------------------
 //	setXAttrMetaData
@@ -521,21 +597,9 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 //  Created by Tom Andersen on 2008/12/10 
 //
 //----------------------------------------------------------------------
-+(NSError*)setXAttrNoSpotlightMirror:(id)plistObject omKey:(NSString*)omKey path:(NSString*)path;
-{
-	// Mirroring: mirror all data to our own open meta domain name
-	[self setXAttr:plistObject forKey:[self openmetaKey:omKey] path:path];
-	
-	// set a time stamp (not in spotlight DB) for this operation
-	NSError* error = [self setXAttr:[NSDate date] forKey:[self openmetaTimeKey:omKey] path:path];
-	return error;
-}
 
 +(NSError*)setXAttrMetaData:(id)plistObject metaDataKey:(NSString*)metaDataKey path:(NSString*)path;
 {
-	// Mirroring: mirror all data to our own open meta domain name
-	[self setXAttrNoSpotlightMirror:plistObject omKey:metaDataKey path:path];
-	
 	NSError* error = [self setXAttr:plistObject forKey:[self spotlightKey:metaDataKey] path:path];
 	
 	return error;
@@ -664,10 +728,6 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 	return [@"org.openmetainfo:" stringByAppendingString:inKeyName];
 }
 
-+(NSString*)openmetaTimeKey:(NSString*)inKeyName;
-{
-	return [@"org.openmetainfo.time:" stringByAppendingString:inKeyName];
-}
 
 
 
@@ -754,25 +814,19 @@ NSString* const OM_MetaTooBigErrorString = @"Meta data is too big - size as bina
 		returnVal = removexattr(pathUTF8, inKeyNameC, XATTR_NOFOLLOW);
 	}
 	
-	// only backup kMDItemOM - open meta stuff. 
 	if (returnVal == 0)
 	{
-		if ([OpenMetaBackup attributeKeyMeansAutomaticBackup:inKeyName])
-			[OpenMetaBackup backupMetadata:path]; // backup all meta data changes. 
 		return nil;
 	}
 	
 	
 	// the file OpenMetaAuthenticate.m is optional. So check that we have it loaded.
 	int theErrorNumber = errno;
-	if (theErrorNumber == EACCES && [self respondsToSelector:@selector(authenticatedSetXAttr:forKey:path:)])
+	if (gAllowOpenMetaAuthenticationDialogs && (theErrorNumber == EACCES) && [self respondsToSelector:@selector(authenticatedSetXAttr:forKey:path:)])
 	{
 		NSError* errorOnAuthenticatedAttempt = [self authenticatedSetXAttr:plistObject forKey:inKeyName path:path];
 		if (errorOnAuthenticatedAttempt == nil)
 		{
-			if ([OpenMetaBackup attributeKeyMeansAutomaticBackup:inKeyName])
-				[OpenMetaBackup backupMetadata:path]; // backup all meta data changes. 
-			
 			return nil; // success after authenticating
 		}
 		// return original error - return errorOnAuthenticatedAttempt;
