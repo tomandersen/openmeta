@@ -140,11 +140,15 @@ extern NSString* const kMDItemUserTags;
 extern NSString* const kMDItemOMUserTagTime;
 extern NSString* const kMDItemOMDocumentDate;
 extern NSString* const kMDItemOMBookmarks; // list of urls - bookmarks as nsarray nsstring 
+extern NSString* const kMDItemOMRatingTime;
 
 // when searching for tags you need to use the right mditem, use kMDItemTagsForSearching (changed with new tags in 10.9)
 
 
 extern const double kMDItemOMMaxRating;
+
+extern BOOL gAllowOpenMetaAuthenticationDialogs; // if auth file is being used, this allows you to control wether or not to use authentication
+
 
 // kMDItemKeywords
 @interface OpenMeta : NSObject {
@@ -166,6 +170,7 @@ extern const double kMDItemOMMaxRating;
 +(NSError*)addUserTags:(NSArray*)tags path:(NSString*)path;
 +(NSError*)clearUserTags:(NSArray*)tags path:(NSString*)path;
 
++(NSError*)setUserTags:(NSArray*)tags path:(NSString*)path atDate:(NSDate*)date;
 
 // To change tags on groups of files: 
 // You first obtain the common tags in a list of files, 

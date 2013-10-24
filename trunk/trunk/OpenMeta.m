@@ -79,7 +79,7 @@ BOOL gAllowOpenMetaAuthenticationDialogs = YES;
 
 +(BOOL)MavericksOrLater;
 {
-    if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber10_8)
+    if (floor(NSFoundationVersionNumber) <= 999)
         return NO;
     else
         return YES;
@@ -284,23 +284,44 @@ BOOL gAllowOpenMetaAuthenticationDialogs = YES;
         if ([theTags count] == 0 && [oldTags count] == 0)
             return nil;
         
+        
+        // synch is a flag that tells us if we have copied tags from older to the new ones.
+        BOOL synchDone = NO;
+        NSNumber* synchSetting = [OpenMeta getXAttr:@"kOM109SyncDone" path:path error:nil];
+        if (synchSetting == nil)
+            [OpenMeta setXAttr:[NSNumber numberWithBool:YES] forKey:@"kOM109SyncDone" path:path];
+        else
+            synchDone = [synchSetting boolValue];
+        
         if ([theTags isEqualToArray:oldTags])
             return theTags;
         
-        // if they are different, then we set tags as well.
-        NSMutableArray* newArray = [NSMutableArray arrayWithArray:theTags];
-        [newArray addObjectsFromArray:oldTags];
-        NSArray* cleanedTags = [self removeDuplicateTags:newArray];
-        if (![theTags isEqualToArray:cleanedTags])
+        // if we have synched the two sets in the past, then the apple tags are to be taken as THE tags..keep the older kMDItemOMUserTags up to date.
+        if (synchDone)
         {
-            [self setAppleTags:cleanedTags path:path];
+            if (![theTags isEqualToArray:oldTags])
+            {
+                [OpenMeta setNSArrayMetaData:theTags metaDataKey:kMDItemOMUserTags path:path];
+            }
+            return theTags;
         }
-        if (![oldTags isEqualToArray:cleanedTags])
+        else
         {
-            [OpenMeta setNSArrayMetaData:cleanedTags metaDataKey:kMDItemOMUserTags path:path];
+            // synch them up. Perhaps someone has used an older tool to set tags, or they just upgraded to OS X 10.9 etc.
+            // if they are different, then we set tags as well.
+            NSMutableArray* newArray = [NSMutableArray arrayWithArray:theTags];
+            [newArray addObjectsFromArray:oldTags];
+            NSArray* cleanedTags = [self removeDuplicateTags:newArray];
+            if (![theTags isEqualToArray:cleanedTags])
+            {
+                [self setAppleTags:cleanedTags path:path];
+            }
+            if (![oldTags isEqualToArray:cleanedTags])
+            {
+                [OpenMeta setNSArrayMetaData:cleanedTags metaDataKey:kMDItemOMUserTags path:path];
+            }
+            return cleanedTags;
         }
-    
-        return cleanedTags;
     }
     else
     {
