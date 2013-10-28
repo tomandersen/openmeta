@@ -986,7 +986,10 @@ BOOL gAllowOpenMetaAuthenticationDialogs = YES;
 {
 	NSMutableArray* outArray = [NSMutableArray arrayWithCapacity:[inTags count]];
 	for (NSString* aTag in inTags)
-		[outArray addObject:[aTag decomposedStringWithCanonicalMapping]];
+    {
+		if ([aTag isKindOfClass:[NSString class]])
+            [outArray addObject:[aTag decomposedStringWithCanonicalMapping]];
+    }
 	
 	return outArray;
 }
