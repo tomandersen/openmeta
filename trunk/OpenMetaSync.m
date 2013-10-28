@@ -326,7 +326,8 @@ const long kMaxDataSizeAttr = 4096; // Limit maximum data that can be stored,
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
 	// create the query
-    NSArray* keysToSearch = [NSArray arrayWithObjects:@"kMDItemOMUserTagTime", [OpenMeta tagsToSearchFor], (NSString*)kMDItemStarRating, nil];
+    //NSArray* keysToSearch = [NSArray arrayWithObjects:@"kMDItemOMUserTagTime", [OpenMeta tagsToSearchFor], (NSString*)kMDItemStarRating, nil];
+    NSArray* keysToSearch = [NSArray arrayWithObjects:@"kMDItemOMUserTagTime", kMDItemOMUserTags, kMDItemUserTags, (NSString*)kMDItemStarRating, nil];
 	
 	NSString* queryString = @"";
 	for (NSString* aKey in keysToSearch)
