@@ -101,6 +101,7 @@ NSString* const OM_CantSetMetadataErrorString = @"OpenMeta can't set the meta da
 //  Created by Tom Andersen on 2009/05/17 
 //
 //----------------------------------------------------------------------
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations" // suppress AuthorizationExecuteWithPrivileges warning (see comments)
 +(NSError*)authenticatedSetXAttr:(id)plistObject forKey:(NSString*)inKeyName path:(NSString*)path;
 {
 	if ([inKeyName length] == 0 || [path length] == 0)
@@ -225,5 +226,6 @@ NSString* const OM_CantSetMetadataErrorString = @"OpenMeta can't set the meta da
 	return [NSError errorWithDomain:@"openmeta" code:OM_CantSetMetadataError userInfo:[NSDictionary dictionaryWithObject:OM_CantSetMetadataErrorString forKey:@"info"]];
 }
 
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
 
 @end

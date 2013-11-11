@@ -297,12 +297,15 @@ BOOL gAllowOpenMetaAuthenticationDialogs = YES;
             return theTags;
         
         // if we have synched the two sets in the past, then the apple tags are to be taken as THE tags..keep the older kMDItemOMUserTags up to date.
+        BOOL savedAllowAuthDialogs = gAllowOpenMetaAuthenticationDialogs;
+        gAllowOpenMetaAuthenticationDialogs = NO;
         if (synchDone)
         {
             if (![theTags isEqualToArray:oldTags])
             {
                 [OpenMeta setNSArrayMetaData:theTags metaDataKey:kMDItemOMUserTags path:path];
             }
+            gAllowOpenMetaAuthenticationDialogs = savedAllowAuthDialogs;
             return theTags;
         }
         else
@@ -320,6 +323,7 @@ BOOL gAllowOpenMetaAuthenticationDialogs = YES;
             {
                 [OpenMeta setNSArrayMetaData:cleanedTags metaDataKey:kMDItemOMUserTags path:path];
             }
+            gAllowOpenMetaAuthenticationDialogs = savedAllowAuthDialogs;
             return cleanedTags;
         }
     }
