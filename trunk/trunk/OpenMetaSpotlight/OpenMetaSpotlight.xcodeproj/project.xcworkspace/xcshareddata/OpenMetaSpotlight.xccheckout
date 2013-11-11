@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>A892CDAF-7325-4CED-8589-EF07E082E137</string>
+	<key>IDESourceControlProjectName</key>
+	<string>OpenMetaSpotlight</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>B60278EC-400F-4133-9F07-65CC1360B1F5</key>
+		<string>http://ironic.unfuddle.com/svn/ironic_ironic</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>OpenMeta/trunk/OpenMetaSpotlight/OpenMetaSpotlight.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>B60278EC-400F-4133-9F07-65CC1360B1F5</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectRepositoryRootDictionary</key>
+	<dict>
+		<key>B60278EC-400F-4133-9F07-65CC1360B1F5</key>
+		<string>http://ironic.unfuddle.com/svn/ironic_ironic</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>http://ironic.unfuddle.com/svn/ironic_ironic/OpenMeta/trunk/OpenMetaSpotlight/OpenMetaSpotlight.xcodeproj</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>B60278EC-400F-4133-9F07-65CC1360B1F5</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>B60278EC-400F-4133-9F07-65CC1360B1F5</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ironic</string>
+		</dict>
+	</array>
+</dict>
+</plist>
