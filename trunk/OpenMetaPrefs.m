@@ -131,6 +131,48 @@ NSString* gPrefsFileName = @"com.openmeta.shared";
 	[self synchPrefs];
 }
 
++(void)removeTagsFromRecents:(NSArray*)tagsToRemove;
+{
+	// by using CFPreferences, we can use a global shared pool of recently entered tags.
+	[self synchPrefs];
+	NSMutableArray* currentRecents = [NSMutableArray array];
+	CFPropertyListRef prefArray = CFPreferencesCopyAppValue(CFSTR("recentlyEnteredTags"), (CFStringRef)gPrefsFileName);
+	if (prefArray)
+	{
+		[currentRecents addObjectsFromArray:(NSArray*)prefArray];
+		CFRelease(prefArray);
+	}
+	
+	// Case insensitivity is important - we also need to preserve case, but the recentTags list in the prefs only should have 
+	// one version of each tag (eg only 'Tom' and not TOM, tom, ToM...)
+	// The way to do this is to use a dictionary, then use the current recents to order the output:
+	const int kMaxRecentsKept = 200;
+	
+	NSMutableDictionary* recentsDict = [NSMutableDictionary dictionary];
+	for (NSString* aRecent in currentRecents)
+		[recentsDict setObject:aRecent forKey:[aRecent lowercaseString]];
+	for (NSString* tagToDelete in tagsToRemove)
+		[recentsDict removeObjectForKey:[tagToDelete lowercaseString]];
+	
+	// now use ordering from the array to create the new array:
+	// now add the current recents in order, but only if they have not been added before.
+	NSMutableArray* newRecents = [NSMutableArray array];
+	for (NSString* aRecent in currentRecents)
+	{
+		if ([recentsDict objectForKey:[aRecent lowercaseString]])
+		{
+			[newRecents addObject:aRecent];
+			[recentsDict removeObjectForKey:[aRecent lowercaseString]]; // remove from dict to signal that it is already added
+		}
+		if ([newRecents count] > kMaxRecentsKept) // we can't let this recent pool of tags grow without limit.
+			break;
+	}
+
+	CFPreferencesSetAppValue(CFSTR("recentlyEnteredTags"), (CFPropertyListRef) newRecents, (CFStringRef)gPrefsFileName);
+	[self synchPrefs];
+}
+
+
 //----------------------------------------------------------------------
 //	synchPrefs
 //

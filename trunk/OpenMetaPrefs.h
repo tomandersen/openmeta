@@ -18,6 +18,7 @@
 
 // this call is how you maintain the list of recent tags. When a user edits a list of tags on a doc, pass in the originals as 'old' and the entire set of changed ones as new. 
 + (void)updatePrefsRecentTags:(NSArray*)oldTags newTags:(NSArray*)newTags;
++ (void)removeTagsFromRecents:(NSArray*)tagsToRemove;
 
 // To be really sure that the prefs loaded correctly for recentTags, you could call this, but calling it at each keystroke as someone types will likely get slow. 
 // note that it is automatically called every few seconds when you call recentTags, so you likely don't need to call this.
