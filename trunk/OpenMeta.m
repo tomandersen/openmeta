@@ -170,7 +170,7 @@ BOOL gAllowOpenMetaAuthenticationDialogs = YES;
 	
 	[OpenMeta setXAttrMetaData:date metaDataKey:kMDItemOMUserTagTime path:path];
     if ([self MavericksOrLater])
-        [OpenMeta setAppleTags:tags path:path];
+        return [OpenMeta setAppleTags:tags path:path];
     
 	return [OpenMeta setNSArrayMetaData:tags metaDataKey:kMDItemOMUserTags path:path];
 }
@@ -303,7 +303,8 @@ BOOL gAllowOpenMetaAuthenticationDialogs = YES;
         {
             if (![theTags isEqualToArray:oldTags])
             {
-                [OpenMeta setNSArrayMetaData:theTags metaDataKey:kMDItemOMUserTags path:path];
+                    // dont write over open meta tags...
+                 //[OpenMeta setNSArrayMetaData:theTags metaDataKey:kMDItemOMUserTags path:path];
             }
             gAllowOpenMetaAuthenticationDialogs = savedAllowAuthDialogs;
             return theTags;

@@ -8,6 +8,10 @@
 
 #import "OpenMetaPrefs.h"
 
+
+const int kMaxRecentsKept = 1400;
+
+
 NSString* gPrefsFileName = @"com.openmeta.shared";
 
 @interface OpenMetaPrefs (Private)
@@ -94,7 +98,6 @@ NSString* gPrefsFileName = @"com.openmeta.shared";
 	// Case insensitivity is important - we also need to preserve case, but the recentTags list in the prefs only should have 
 	// one version of each tag (eg only 'Tom' and not TOM, tom, ToM...)
 	// The way to do this is to use a dictionary, then use the current recents to order the output:
-	const int kMaxRecentsKept = 200;
 	
 	NSMutableDictionary* recentsDict = [NSMutableDictionary dictionary];
 	for (NSString* aRecent in currentRecents)
@@ -146,7 +149,6 @@ NSString* gPrefsFileName = @"com.openmeta.shared";
 	// Case insensitivity is important - we also need to preserve case, but the recentTags list in the prefs only should have 
 	// one version of each tag (eg only 'Tom' and not TOM, tom, ToM...)
 	// The way to do this is to use a dictionary, then use the current recents to order the output:
-	const int kMaxRecentsKept = 200;
 	
 	NSMutableDictionary* recentsDict = [NSMutableDictionary dictionary];
 	for (NSString* aRecent in currentRecents)
